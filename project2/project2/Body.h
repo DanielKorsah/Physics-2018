@@ -72,7 +72,7 @@ public:
 	}
 	void addForce(Force* f) { m_forces.push_back(f); }
 	
-
+	
 private:
 
 	Mesh m_mesh; // mesh used to represent the body

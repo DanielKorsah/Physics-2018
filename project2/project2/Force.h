@@ -10,7 +10,7 @@ public:
 	Force() {}
 	~Force() {}
 
-	virtual glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel);
+	virtual glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel) { return glm::vec3(0); }
 };
 
 
@@ -27,7 +27,8 @@ public:
 	void setGravity(glm::vec3 gravity) { m_gravity = gravity; }
 
 	//physics
-	glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel);
+	////////////////fix???????????????????????????????
+	glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel) { return glm::vec3(0); }
 
 private:
 	glm::vec3 m_gravity = glm::vec3(0.0f, -9.8f, 0.0);
@@ -41,7 +42,7 @@ public:
 	Drag() {}
 
 	//physics
-	glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel);
+	glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel) { return glm::vec3(0); }
 
 private:
 
