@@ -102,7 +102,7 @@ void BlowDryer(Application app)
 	Mesh plane = Mesh::Mesh(Mesh::QUAD);
 	// scale it up x5
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
-	plane.setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.frag"));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
 
 	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
 
@@ -118,7 +118,7 @@ void BlowDryer(Application app)
 		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
 		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
 		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i].getMesh().setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_blue.frag"));
+		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
 
 
 		//initial velocty
@@ -135,7 +135,7 @@ void BlowDryer(Application app)
 	}
 
 	//visualise the box
-	Mesh cubeMesh = Mesh::Mesh("C:/Users/40214314/Desktop/project2/project2/resources/models/cube.obj");
+	Mesh cubeMesh = Mesh::Mesh("resources/models/cube.obj");
 	cubeMesh.translate(glm::vec3(0.0f, 5.0f, 0.0f));
 	cubeMesh.scale(glm::vec3(10.0f, 10.0f, 10.0f));
 	cubeMesh.setShader(transparent);
@@ -314,7 +314,7 @@ void Integration(Application app)
 	Mesh plane = Mesh::Mesh(Mesh::QUAD);
 	// scale it up x5
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
-	plane.setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.frag"));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
 
 	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
 	
@@ -329,7 +329,7 @@ void Integration(Application app)
 		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
 		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
 		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i].getMesh().setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_blue.frag"));
+		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
 
 
 		//initial velocty
@@ -347,7 +347,7 @@ void Integration(Application app)
 	Particle m = Particle::Particle();
 	m.setPos(glm::vec3(0, 3, 0));
 	m.scale(glm::vec3(0.5f, 0.5f, 0.5f));
-	m.getMesh().setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_blue.frag"));
+	m.getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
 
 
 	// time
@@ -468,7 +468,7 @@ void ForceClassTest(Application app, Gravity g)
 	Mesh plane = Mesh::Mesh(Mesh::QUAD);
 	// scale it up x5
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
-	plane.setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/physics.frag"));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
 
 	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
 
@@ -483,7 +483,7 @@ void ForceClassTest(Application app, Gravity g)
 		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
 		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
 		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i].getMesh().setShader(Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_blue.frag"));
+		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
 
 
 		//initial velocty
@@ -603,9 +603,9 @@ int main()
 	app.initRender();
 	Application::camera.setCameraPosition(glm::vec3(0.0f, 4.0f, 15.0f));
 
-	redShader = Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_red.frag");
-	blueShader = Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_blue.frag");
-	transparent = Shader("C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid.vert", "C:/Users/40214314/Desktop/project2/project2/resources/shaders/solid_transparent.frag");
+	redShader = Shader("resources/shaders/solid.vert", "resources/shaders/solid_red.frag");
+	blueShader = Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag");
+	transparent = Shader("resources/shaders/solid.vert", "resources/shaders/solid_transparent.frag");
 
 	//coursework 1, particles
 	//Integration(app);
