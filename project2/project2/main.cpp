@@ -457,7 +457,7 @@ void Integration(Application app)
 	app.terminate();
 }
 
-void ForceClassTest(Application app, Gravity g) 
+void ForceClassTest(Application app, Gravity* g, Drag* d) 
 {
 	float t = 0.0f;
 
@@ -490,11 +490,12 @@ void ForceClassTest(Application app, Gravity g)
 		//particles[i].setVel(glm::vec3(sin(i), 0.0f, cos(i)));
 
 		//make ring
-		particles[i].setPos(glm::vec3(i + 1, 3, 0));
+		particles[i].setPos(glm::vec3(i + 1, 6, 0));
 		//particles[i].setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
 
 		//set start acceleration to gravity
-		particles[i].addForce(&g);
+		particles[i].addForce(g);
+		//particles[i].addForce(d);
 	}
 
 
@@ -509,6 +510,7 @@ void ForceClassTest(Application app, Gravity g)
 
 	while (!glfwWindowShouldClose(app.getWindow()))
 	{
+		
 
 		//fixed timstep
 		double newTime = (GLfloat)glfwGetTime();
@@ -519,16 +521,14 @@ void ForceClassTest(Application app, Gravity g)
 
 		while (accumulator >= fixedDeltaTime)
 		{
-			particles[0].setAcc(particles[0].applyForces(particles[0].getPos(), particles[0].getVel(), physicsTime, fixedDeltaTime));
-
-			//Semi-Implicit Euler integration
-			particles[0].getVel() += particles[0].getAcc() * fixedDeltaTime;
-			particles[0].translate(particles[0].getPos() + particles[0].getVel() * fixedDeltaTime);
-
-
+			
 			for (int i = 0; i < particleNum; i++)
 			{
-
+				
+				particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel(), physicsTime, fixedDeltaTime));
+				//Semi-Implicit Euler integration
+				particles[i].getVel() += particles[i].getAcc() * fixedDeltaTime;
+				particles[i].translate(particles[i].getVel() * fixedDeltaTime);
 
 				//collisions to bound within the box
 				for (int j = 0; j < 3; j++)
@@ -538,7 +538,7 @@ void ForceClassTest(Application app, Gravity g)
 						glm::vec3 diff = glm::vec3(0.0f);
 						diff[j] = cube.origin[j] - particles[i].getPos()[j];
 						particles[i].setPos(j, cube.origin[j] + diff[j]);
-						particles[i].getVel()[j] *= -1.0f;
+						particles[i].getVel()[j] *= -0.8f;
 					}
 
 					if (particles[i].getTranslate()[3][j] > cube.bound[j])
@@ -546,7 +546,7 @@ void ForceClassTest(Application app, Gravity g)
 						glm::vec3 diff = glm::vec3(0.0f);
 						diff[j] = cube.bound[j] - particles[i].getPos()[j];
 						particles[i].setPos(j, cube.bound[j] + diff[j]);
-						particles[i].getVel()[j] *= -1.0f;
+						particles[i].getVel()[j] *= -0.8f;
 					}
 				}
 
@@ -596,7 +596,8 @@ int main()
 {
 
 	//gravity force
-	Gravity g = Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+	Gravity *g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+	Drag* d = new Drag();
 
 	// create application
 	Application app = Application::Application();
@@ -611,7 +612,7 @@ int main()
 	//Integration(app);
 
 	//use force class
-	ForceClassTest(app, g);
+	ForceClassTest(app, g, d);
 
 	
 	return EXIT_SUCCESS;

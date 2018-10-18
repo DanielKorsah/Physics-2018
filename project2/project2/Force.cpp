@@ -15,6 +15,7 @@ glm::vec3 Gravity::apply(float mass, const glm::vec3 & pos, const glm::vec3 & ve
 
 	return m_gravity * mass;
 }
+
 glm::vec3 Drag::apply(float mass, const glm::vec3 & pos, const glm::vec3 & vel)
 {
 	float velSquared = glm::length(vel) * glm::length(vel);
