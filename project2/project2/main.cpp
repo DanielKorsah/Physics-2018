@@ -18,6 +18,7 @@
 
 // Other Libs
 #include "SOIL2/SOIL2.h"
+#include "windows.h"
 
 // project includes
 #include "Application.h"
@@ -459,6 +460,9 @@ void Integration(Application app)
 
 void MassSpring(Application app) 
 {
+
+	
+	
 	float t = 0.0f;
 
 	deltaTime = 0.0f;
@@ -481,37 +485,38 @@ void MassSpring(Application app)
 	float rest = 0.5f;
 
 	// create particles
-	std::vector<Particle> particles;
-	int particleNum = 3;
+	std::vector<Particle*> particles;
+	int particleNum = 5;
 	for (int i = 0; i < particleNum; i++)
 	{
-		Particle p = Particle::Particle();
+		Particle *p = new Particle();
 		particles.push_back(p);
 		//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
 		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
-		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
-		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+		particles[i]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+		//particles[i]->rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
+		particles[i]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
 
 
 		//initial velocty
-		//particles[i].setVel(glm::vec3(sin(i), 0.0f, cos(i)));
+		//particles[i]->setVel(glm::vec3(sin(i), 0.0f, cos(i)));
 
 		//make ring
-		particles[i].setPos(glm::vec3(i + 1, 6, 0));
-		//particles[i].setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
+		particles[i]->setPos(glm::vec3(i + 1, 6, 0));
+		//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
 
 		
 		//point 0 must get no forces
 		if (i > 0) 
 		{
-			//add gravity, drag and hooke forcesparticles[i].addForce(g);
-			particles[i].addForce(g);
-			Hooke* hooke = new Hooke(&particles[i], &particles[i-1], spring, damper, rest);
-			particles[i].addForce(hooke);
+			//add gravity, drag and hooke forcesparticles[i]->addForce(g);
+			particles[i]->addForce(g);
+			Hooke* hooke1 = new Hooke(particles[i], particles[i-1], spring, damper, rest);
+			particles[i]->addForce(hooke1);
 			if (i > 1)
 			{
-				particles[i-1].addForce(hooke);
+				Hooke* hooke2 = new Hooke(particles[i-1], particles[i], spring, damper, rest);
+				particles[i-1]->addForce(hooke2);
 			}
 		}
 	}
@@ -545,31 +550,41 @@ void MassSpring(Application app)
 			
 			for (int i = 0; i < particleNum; i++)
 			{
+				particles[i]->setAcc(particles[i]->applyForces(particles[i]->getPos(), particles[i]->getVel(), physicsTime, fixedDeltaTime));
+				if (particles[i]->getAcc() != particles[i]->getAcc())
+				{
+					std::cout << i << " is broke :  " << glm::to_string(particles[i]->getAcc()) << std::endl;
+				}
+			}
+
+			for (int i = 0; i < particleNum; i++)
+			{
 				
-				particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel(), physicsTime, fixedDeltaTime));
-				/*if (i == 0)
-					particles[i].setAcc(glm::vec3(0));*/
+				
 				//Semi-Implicit Euler integration
-				particles[i].getVel() += particles[i].getAcc() * fixedDeltaTime;
-				particles[i].translate(particles[i].getVel() * fixedDeltaTime);
+				particles[i]->getVel() += particles[i]->getAcc() * fixedDeltaTime;
+				particles[i]->translate(particles[i]->getVel() * fixedDeltaTime);
+
+				//diagnosing
+				//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
 
 				//collisions to bound within the box
 				/*for (int j = 0; j < 3; j++)
 				{
-					if (particles[i].getTranslate()[3][j] < cube.origin[j])
+					if (particles[i]->getTranslate()[3][j] < cube.origin[j])
 					{
 						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.origin[j] - particles[i].getPos()[j];
-						particles[i].setPos(j, cube.origin[j] + diff[j]);
-						particles[i].getVel()[j] *= -0.8f;
+						diff[j] = cube.origin[j] - particles[i]->getPos()[j];
+						particles[i]->setPos(j, cube.origin[j] + diff[j]);
+						particles[i]->getVel()[j] *= -0.8f;
 					}
 
-					if (particles[i].getTranslate()[3][j] > cube.bound[j])
+					if (particles[i]->getTranslate()[3][j] > cube.bound[j])
 					{
 						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.bound[j] - particles[i].getPos()[j];
-						particles[i].setPos(j, cube.bound[j] + diff[j]);
-						particles[i].getVel()[j] *= -0.8f;
+						diff[j] = cube.bound[j] - particles[i]->getPos()[j];
+						particles[i]->setPos(j, cube.bound[j] + diff[j]);
+						particles[i]->getVel()[j] *= -0.8f;
 					}
 				}*/
 
@@ -604,11 +619,12 @@ void MassSpring(Application app)
 		// draw particles
 		for (int i = 0; i < particleNum; i++)
 		{
-			app.draw(particles[i].getMesh());
+			app.draw(particles[i]->getMesh());
 		}
 
 
 		app.display();
+
 	}
 	app.terminate();
 }

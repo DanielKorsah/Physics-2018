@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Force.h"
 #include "Body.h"
+#include <iostream>
 
 // GLM
 #include <glm/glm.hpp>
@@ -46,5 +47,7 @@ glm::vec3 Hooke::apply(float mass, const glm::vec3 & pos, const glm::vec3 & vel)
 	glm::vec3 damper(-m_kd * (v1 - v2));
 
 	glm::vec3 hookeForce(spring + damper);
+	if (hookeForce * direction != hookeForce * direction)
+		std::cout << std::endl;
 	return hookeForce * direction;
 }
