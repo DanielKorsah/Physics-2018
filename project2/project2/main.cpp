@@ -476,13 +476,13 @@ void MassSpring(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 1;
-	float damper = 1;
-	float rest = 1;
+	float spring = 8.0f;
+	float damper = 2.0f;
+	float rest = 0.5f;
 
 	// create particles
 	std::vector<Particle> particles;
-	int particleNum = 2;
+	int particleNum = 3;
 	for (int i = 0; i < particleNum; i++)
 	{
 		Particle p = Particle::Particle();
@@ -507,9 +507,12 @@ void MassSpring(Application app)
 		{
 			//add gravity, drag and hooke forcesparticles[i].addForce(g);
 			particles[i].addForce(g);
-			Hooke *hooke = new Hooke(&particles[i - 1], &particles[i], spring, damper, rest);
+			Hooke* hooke = new Hooke(&particles[i], &particles[i-1], spring, damper, rest);
 			particles[i].addForce(hooke);
-			particles[i - 1].addForce(hooke);
+			if (i > 1)
+			{
+				particles[i-1].addForce(hooke);
+			}
 		}
 	}
 
@@ -522,7 +525,7 @@ void MassSpring(Application app)
 
 	//fixed timestep
 	double physicsTime = 0.0f;
-	const double fixedDeltaTime = 0.01f;
+	const double fixedDeltaTime = 0.001f;
 	double currentTime = (GLfloat)glfwGetTime();
 	double accumulator = 0.0f;
 
@@ -544,14 +547,14 @@ void MassSpring(Application app)
 			{
 				
 				particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel(), physicsTime, fixedDeltaTime));
-				if (i == 0)
-					particles[i].setAcc(glm::vec3(0));
+				/*if (i == 0)
+					particles[i].setAcc(glm::vec3(0));*/
 				//Semi-Implicit Euler integration
 				particles[i].getVel() += particles[i].getAcc() * fixedDeltaTime;
 				particles[i].translate(particles[i].getVel() * fixedDeltaTime);
 
 				//collisions to bound within the box
-				for (int j = 0; j < 3; j++)
+				/*for (int j = 0; j < 3; j++)
 				{
 					if (particles[i].getTranslate()[3][j] < cube.origin[j])
 					{
@@ -568,7 +571,7 @@ void MassSpring(Application app)
 						particles[i].setPos(j, cube.bound[j] + diff[j]);
 						particles[i].getVel()[j] *= -0.8f;
 					}
-				}
+				}*/
 
 			}
 
