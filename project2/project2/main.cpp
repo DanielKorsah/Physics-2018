@@ -480,13 +480,13 @@ void MassSpring(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 10.0f;
-	float damper = 5.0f;
+	float spring = 50.0f;
+	float damper = 30.0f;
 	float rest = 0.5f;
 
 	// create particles
 	std::vector<Particle*> particles;
-	int particleNum = 5;
+	int particleNum = 10;
 	for (int i = 0; i < particleNum; i++)
 	{
 		Particle *p = new Particle();
@@ -502,7 +502,7 @@ void MassSpring(Application app)
 		//particles[i]->setVel(glm::vec3(sin(i), 0.0f, cos(i)));
 
 		//make ring
-		particles[i]->setPos(glm::vec3(i + 1, 6, 0));
+		particles[i]->setPos(glm::vec3(sin(i), 6, cos(i)));
 		//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
 
 		
@@ -569,7 +569,7 @@ void MassSpring(Application app)
 				//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
 
 				//collisions to bound within the box
-				/*for (int j = 0; j < 3; j++)
+				for (int j = 0; j < 3; j++)
 				{
 					if (particles[i]->getTranslate()[3][j] < cube.origin[j])
 					{
@@ -586,7 +586,7 @@ void MassSpring(Application app)
 						particles[i]->setPos(j, cube.bound[j] + diff[j]);
 						particles[i]->getVel()[j] *= -0.8f;
 					}
-				}*/
+				}
 
 			}
 
