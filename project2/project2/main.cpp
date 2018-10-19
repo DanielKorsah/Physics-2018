@@ -506,22 +506,33 @@ void MassSpring(Application app)
 		//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
 
 		
+		
+	}
+
+	for (int i = 0; i < particleNum; i++)
+	{
 		//point 0 must get no forces
-		if (i > 0) 
+		if ((i > 0) && (i != particleNum - 1))
 		{
-			//add gravity, drag and hooke forcesparticles[i]->addForce(g);
+			//add gravity, drag and hooke forces
 			particles[i]->addForce(g);
-			Hooke* hooke1 = new Hooke(particles[i], particles[i-1], spring, damper, rest);
+
+			/*Drag* d = new Drag();
+			particles[i]->addForce(d);*/
+			Hooke* hooke1 = new Hooke(particles[i], particles[i - 1], spring, damper, rest);
 			particles[i]->addForce(hooke1);
 			if (i > 1)
 			{
-				Hooke* hooke2 = new Hooke(particles[i-1], particles[i], spring, damper, rest);
-				particles[i-1]->addForce(hooke2);
+				Hooke* hooke2 = new Hooke(particles[i - 1], particles[i], spring, damper, rest);
+				particles[i - 1]->addForce(hooke2);
+			}
+			if (i == particleNum - 2)
+			{
+				Hooke* hooke3 = new Hooke(particles[i], particles[i + 1], spring, damper, rest);
+				particles[i]->addForce(hooke3);
 			}
 		}
 	}
-
-	
 
 
 
