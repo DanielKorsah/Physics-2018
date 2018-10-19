@@ -476,8 +476,8 @@ void MassSpring(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 8.0f;
-	float damper = 2.0f;
+	float spring = 10.0f;
+	float damper = 5.0f;
 	float rest = 0.5f;
 
 	// create particles
