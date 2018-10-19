@@ -457,7 +457,7 @@ void Integration(Application app)
 	app.terminate();
 }
 
-void ForceClassTest(Application app, Gravity* g, Drag* d) 
+void MassSpring(Application app) 
 {
 	float t = 0.0f;
 
@@ -470,11 +470,19 @@ void ForceClassTest(Application app, Gravity* g, Drag* d)
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
 	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
 
-	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+	
+	//create forces
+	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+	Drag* d = new Drag();
 
-	// create particle
+	//Hooke parameter controls
+	float spring = 1;
+	float damper = 1;
+	float rest = 1;
+
+	// create particles
 	std::vector<Particle> particles;
-	int particleNum = 1;
+	int particleNum = 2;
 	for (int i = 0; i < particleNum; i++)
 	{
 		Particle p = Particle::Particle();
@@ -493,10 +501,20 @@ void ForceClassTest(Application app, Gravity* g, Drag* d)
 		particles[i].setPos(glm::vec3(i + 1, 6, 0));
 		//particles[i].setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
 
-		//set start acceleration to gravity
-		particles[i].addForce(g);
-		//particles[i].addForce(d);
+		
+		//point 0 must get no forces
+		if (i > 0) 
+		{
+			//add gravity, drag and hooke forcesparticles[i].addForce(g);
+			particles[i].addForce(g);
+			Hooke *hooke = new Hooke(&particles[i - 1], &particles[i], spring, damper, rest);
+			particles[i].addForce(hooke);
+			particles[i - 1].addForce(hooke);
+		}
 	}
+
+	
+
 
 
 	// time
@@ -526,6 +544,8 @@ void ForceClassTest(Application app, Gravity* g, Drag* d)
 			{
 				
 				particles[i].setAcc(particles[i].applyForces(particles[i].getPos(), particles[i].getVel(), physicsTime, fixedDeltaTime));
+				if (i == 0)
+					particles[i].setAcc(glm::vec3(0));
 				//Semi-Implicit Euler integration
 				particles[i].getVel() += particles[i].getAcc() * fixedDeltaTime;
 				particles[i].translate(particles[i].getVel() * fixedDeltaTime);
@@ -594,11 +614,6 @@ void ForceClassTest(Application app, Gravity* g, Drag* d)
 // main function
 int main()
 {
-
-	//gravity force
-	Gravity *g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
-	Drag* d = new Drag();
-
 	// create application
 	Application app = Application::Application();
 	app.initRender();
@@ -612,7 +627,7 @@ int main()
 	//Integration(app);
 
 	//use force class
-	ForceClassTest(app, g, d);
+	MassSpring(app);
 
 	
 	return EXIT_SUCCESS;

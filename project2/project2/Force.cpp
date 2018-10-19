@@ -29,3 +29,22 @@ glm::vec3 Force::apply(float mass, const glm::vec3 & pos, const glm::vec3 & vel)
 	return glm::vec3(0);
 }
 
+glm::vec3 Hooke::apply(float mass, const glm::vec3 & pos, const glm::vec3 & vel)
+{
+	glm::vec3 direction;
+	direction = m_b2->getPos() - m_b1->getPos();
+
+	float length = glm::length(direction);	//length of spring
+	direction = direction / length;	//normalise direction
+
+	//velocities used
+	float v1 = glm::dot(m_b1->getVel(), direction);
+	float v2 = glm::dot(m_b2->getVel(), direction);
+
+	//spring and damper components of formula
+	glm::vec3 spring(-m_ks * (m_rest - length));
+	glm::vec3 damper(-m_kd * (v1 - v2));
+
+	glm::vec3 hookeForce(spring + damper);
+	return hookeForce;
+}

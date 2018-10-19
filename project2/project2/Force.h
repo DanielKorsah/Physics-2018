@@ -49,4 +49,30 @@ private:
 	float coEff = 0.47f;
 };
 
+//Hooke force
+class Hooke : public Force 
+{
+public:
+	Hooke() {}
+	Hooke(Body* b1, Body* b2, float ks, float kd, float rest) 
+	{
+		m_ks = ks;
+		m_kd = kd;
+		m_rest = rest;
+		m_b1 = b1;
+		m_b2 = b2;
+	}
+
+	//physics
+	glm::vec3 apply(float mass, const glm::vec3 &pos, const glm::vec3 &vel);
+
+private:
+	float m_ks; //spring stiffness
+	float m_kd; //damping coefficient
+	float m_rest; //spring rest length
+
+	Body* m_b1; //pointer to body connected to one extremity of the spring
+	Body* m_b2; //pointer to body connected to the other extremity of the spring
+};
+
 
