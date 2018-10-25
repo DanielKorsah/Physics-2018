@@ -458,7 +458,7 @@ void Integration(Application app)
 	app.terminate();
 }
 
-void MassSpring(Application app) 
+void Rope(Application app) 
 {
 
 	
@@ -657,7 +657,7 @@ int main()
 	//Integration(app);
 
 	//use force class
-	MassSpring(app);
+	Rope(app);
 
 	
 	return EXIT_SUCCESS;
