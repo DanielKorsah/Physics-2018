@@ -39,6 +39,9 @@ void BlowDryer(Application app);
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
+//forward declare mode switching method
+void CheckMode(Application app);
+
 struct Cube
 {
 	glm::vec3 origin = glm::vec3(-5, 0.0f, -5);
@@ -216,12 +219,7 @@ void Integration(Application app)
 		app.doMovement(deltaTime);
 
 		//stwitch mode
-		glfwPollEvents();
-		if (app.keys[GLFW_KEY_1])
-		{
-			app.clear();
-			BlowDryer(app);
-		}
+		CheckMode(app);
 
 
 		/*
@@ -415,12 +413,7 @@ void BlowDryer(Application app)
 		app.doMovement(deltaTime);
 
 		//switch mode
-		glfwPollEvents();
-		if (app.keys[GLFW_KEY_2])
-		{
-			app.clear();
-			Integration(app);
-		}
+		CheckMode(app);
 
 		//toggle cone movement
 		if (app.keys[GLFW_KEY_8])
@@ -459,8 +452,6 @@ void BlowDryer(Application app)
 
 void Rope(Application app) 
 {
-
-	
 	
 	float t = 0.0f;
 
@@ -618,6 +609,9 @@ void Rope(Application app)
 		// Manage interaction
 		app.doMovement(deltaTime);
 
+		//toggle modes
+		CheckMode(app);
+
 
 		/*
 		**	RENDER
@@ -639,6 +633,29 @@ void Rope(Application app)
 	app.terminate();
 }
 
+
+//demo switching method
+void CheckMode(Application app)
+{
+	glfwPollEvents();
+	if (app.keys[GLFW_KEY_1])
+	{
+		app.clear();
+		BlowDryer(app);
+	}
+
+	if (app.keys[GLFW_KEY_2])
+	{
+		app.clear();
+		Integration(app);
+	}
+
+	if (app.keys[GLFW_KEY_3])
+	{
+		app.clear();
+		Rope(app);
+	}
+}
 
 // main function
 int main()
