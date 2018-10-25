@@ -93,6 +93,157 @@ bool inCone(Particle p, float *cm)
 		
 }
 
+void Integration(Application app)
+{
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x5
+	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+
+	// create particle
+	std::vector<Particle> particles;
+	int particleNum = 2;
+	for (int i = 0; i < particleNum; i++)
+	{
+		Particle p = Particle::Particle();
+		particles.push_back(p);
+		//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
+		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
+		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
+		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
+		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+
+
+		//initial velocty
+		//particles[i].setVel(glm::vec3(sin(i), 0.0f, cos(i)));
+
+		//make ring
+		particles[i].setPos(glm::vec3(i + 1, 3, 0));
+		//particles[i].setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
+
+		//set start acceleration to gravity
+		particles[i].setAcc(gravity);
+	}
+
+	//height marker particle
+	Particle m = Particle::Particle();
+	m.setPos(glm::vec3(0, 3, 0));
+	m.scale(glm::vec3(0.5f, 0.5f, 0.5f));
+	m.getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 1.0f;
+	const double fixedDeltaTime = 0.01f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+		while (accumulator >= fixedDeltaTime)
+		{
+			particles[0].setAcc((gravity));
+			particles[1].setAcc(gravity);
+
+			//Semi-Implicit Euler integration
+			particles[0].getVel() += particles[0].getAcc() * fixedDeltaTime;
+			particles[0].setPos(particles[0].getPos() + particles[0].getVel() * fixedDeltaTime);
+
+
+			//forward Euler integration
+			particles[1].setPos(particles[1].getPos() + particles[1].getVel() * fixedDeltaTime);
+			particles[1].getVel() += particles[1].getAcc() * fixedDeltaTime;
+
+			for (int i = 0; i < particleNum; i++)
+			{
+
+
+				//collisions to bound within the box
+				for (int j = 0; j < 3; j++)
+				{
+					if (particles[i].getTranslate()[3][j] < cube.origin[j])
+					{
+						glm::vec3 diff = glm::vec3(0.0f);
+						diff[j] = cube.origin[j] - particles[i].getPos()[j];
+						particles[i].setPos(j, cube.origin[j] + diff[j]);
+						particles[i].getVel()[j] *= -1.0f;
+					}
+
+					if (particles[i].getTranslate()[3][j] > cube.bound[j])
+					{
+						glm::vec3 diff = glm::vec3(0.0f);
+						diff[j] = cube.bound[j] - particles[i].getPos()[j];
+						particles[i].setPos(j, cube.bound[j] + diff[j]);
+						particles[i].getVel()[j] *= -1.0f;
+					}
+				}
+
+			}
+
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+
+		}
+
+		// Set frame time
+		GLfloat currentFrame = (GLfloat)glfwGetTime() - firstFrame;
+		// the animation can be sped up or slowed down by multiplying currentFrame by a factor.
+		currentFrame *= 1.5f;
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
+		//stwitch mode
+		glfwPollEvents();
+		if (app.keys[GLFW_KEY_1])
+		{
+			app.clear();
+			BlowDryer(app);
+		}
+
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+		// draw particles
+		for (int i = 0; i < particleNum; i++)
+		{
+			app.draw(particles[i].getMesh());
+		}
+
+		//render height marker
+		app.draw(m.getMesh());
+
+		app.display();
+	}
+	app.terminate();
+}
 
 void BlowDryer(Application app) 
 {
@@ -303,158 +454,6 @@ void BlowDryer(Application app)
 		app.display();
 	}
 
-	app.terminate();
-}
-
-void Integration(Application app)
-{	
-	deltaTime = 0.0f;
-	lastFrame = 0.0f;
-
-	// create ground plane
-	Mesh plane = Mesh::Mesh(Mesh::QUAD);
-	// scale it up x5
-	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
-	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
-
-	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
-	
-	// create particle
-	std::vector<Particle> particles;
-	int particleNum = 2;
-	for (int i = 0; i < particleNum; i++)
-	{
-		Particle p = Particle::Particle();
-		particles.push_back(p);
-		//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
-		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
-		particles[i].scale(glm::vec3(0.5f, 0.5f, 0.5f));
-		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-
-
-		//initial velocty
-		//particles[i].setVel(glm::vec3(sin(i), 0.0f, cos(i)));
-
-		//make ring
-		particles[i].setPos(glm::vec3(i+1, 3, 0));
-		//particles[i].setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
-
-		//set start acceleration to gravity
-		particles[i].setAcc(gravity);
-	}
-
-	//height marker particle
-	Particle m = Particle::Particle();
-	m.setPos(glm::vec3(0, 3, 0));
-	m.scale(glm::vec3(0.5f, 0.5f, 0.5f));
-	m.getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-
-
-	// time
-	GLfloat firstFrame = (GLfloat)glfwGetTime();
-
-	//fixed timestep
-	double physicsTime = 1.0f;
-	const double fixedDeltaTime = 0.01f;
-	double currentTime = (GLfloat)glfwGetTime();
-	double accumulator = 0.0f;
-
-	while (!glfwWindowShouldClose(app.getWindow()))
-	{
-
-		//fixed timstep
-		double newTime = (GLfloat)glfwGetTime();
-		double frameTime = newTime - currentTime;
-		currentTime = newTime;
-
-		accumulator += frameTime;
-
-		while (accumulator >= fixedDeltaTime)
-		{
-			particles[0].setAcc((gravity));
-			particles[1].setAcc(gravity);
-
-			//Semi-Implicit Euler integration
-			particles[0].getVel() += particles[0].getAcc() * fixedDeltaTime;
-			particles[0].setPos(particles[0].getPos() + particles[0].getVel() * fixedDeltaTime);
-
-
-			//forward Euler integration
-			particles[1].setPos(particles[1].getPos() + particles[1].getVel() * fixedDeltaTime);
-			particles[1].getVel() += particles[1].getAcc() * fixedDeltaTime;
-
-			for (int i = 0; i < particleNum; i++)
-			{
-
-
-				//collisions to bound within the box
-				for (int j = 0; j < 3; j++)
-				{
-					if (particles[i].getTranslate()[3][j] < cube.origin[j])
-					{
-						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.origin[j] - particles[i].getPos()[j];
-						particles[i].setPos(j, cube.origin[j] + diff[j]);
-						particles[i].getVel()[j] *= -1.0f;
-					}
-
-					if (particles[i].getTranslate()[3][j] > cube.bound[j])
-					{
-						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.bound[j] - particles[i].getPos()[j];
-						particles[i].setPos(j, cube.bound[j] + diff[j]);
-						particles[i].getVel()[j] *= -1.0f;
-					}
-				}
-
-			}
-
-			accumulator -= fixedDeltaTime;
-			physicsTime += fixedDeltaTime;
-
-		}
-
-		// Set frame time
-		GLfloat currentFrame = (GLfloat)glfwGetTime() - firstFrame;
-		// the animation can be sped up or slowed down by multiplying currentFrame by a factor.
-		currentFrame *= 1.5f;
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-
-		/*
-		**	INTERACTION
-		*/
-		// Manage interaction
-		app.doMovement(deltaTime);
-
-		//stwitch mode
-		glfwPollEvents();
-		if (app.keys[GLFW_KEY_1])
-		{
-			app.clear();
-			BlowDryer(app);
-		}
-
-
-		/*
-		**	RENDER
-		*/
-		// clear buffer
-		app.clear();
-		// draw groud plane
-		app.draw(plane);
-		// draw particles
-		for (int i = 0; i < particleNum; i++)
-		{
-			app.draw(particles[i].getMesh());
-		}
-
-		//render height marker
-		app.draw(m.getMesh());
-
-		app.display();
-	}
 	app.terminate();
 }
 
