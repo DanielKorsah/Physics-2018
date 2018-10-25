@@ -1003,25 +1003,25 @@ void CheckMode(Application app)
 	if (app.keys[GLFW_KEY_1])
 	{
 		app.clear();
-		Integration(app);
+		BlowDryer(app);
 	}
 
 	if (app.keys[GLFW_KEY_2])
 	{
-		app.clear();;
-		BlowDryer(app);
+		app.clear();
+		Integration(app);
 	}
 
 	if (app.keys[GLFW_KEY_3])
 	{
 		app.clear();
-		Rope(app);
+		Chain(app);
 	}
 
 	if (app.keys[GLFW_KEY_4])
 	{
 		app.clear();
-		Chain(app);
+		Rope(app);
 	}
 
 	if (app.keys[GLFW_KEY_5])
