@@ -63,7 +63,11 @@ Cone cone;
 //toggle variable for moving cone
 bool toggle = false;
 
-bool inCone(Particle p, float *cm)
+
+
+
+
+bool inCone(Particle p, float* cm)
 {
 	//length of cone and related stuff
 	glm::vec3 originToBase = cone.base - cone.origin;
@@ -109,6 +113,60 @@ bool isCorner(int row, int column, int squareSize)
 	else
 		return false;
 }
+
+
+
+
+
+void upHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeUp = new Hooke(p_matrix[i][j], p_matrix[i-1][j], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeUp);
+}
+
+void downHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeDown = new Hooke(p_matrix[i][j], p_matrix[i + 1][j], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeDown);
+}
+
+void rightHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeRight = new Hooke(p_matrix[i][j], p_matrix[i][j + 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeRight);
+}
+
+void upRightHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeUpRight = new Hooke(p_matrix[i][j], p_matrix[i - 1][j + 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeUpRight);
+}
+
+void downRightHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeDownRight = new Hooke(p_matrix[i][j], p_matrix[i + 1][j + 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeDownRight);
+}
+
+void leftHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeLeft = new Hooke(p_matrix[i][j], p_matrix[i][j - 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeLeft);
+}
+
+void upLeftHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeUpLeft = new Hooke(p_matrix[i][j], p_matrix[i - 1][j - 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeUpLeft);
+}
+
+void downLeftHooke(std::vector<std::vector<Particle*>> p_matrix, int i, int j, float spring, float damper, float rest)
+{
+	Hooke* hookeDownLeft = new Hooke(p_matrix[i][j], p_matrix[i + 1][j - 1], spring, damper, rest);
+	p_matrix[i][j]->addForce(hookeDownLeft);
+}
+
+
 
 void Integration(Application app)
 {
@@ -886,10 +944,75 @@ void Cloth(Application app)
 	{
 		for (int j = 0; j < clothSize; j++)
 		{
-			//give all but the corners gravity
+			//give all but the corners forces
 			if (!isCorner(i, j, clothSize))
 			{
+				//gravity
 				p_matrix[i][j]->addForce(g);
+
+				//hookes for top edge
+				if (i == 0)
+				{	
+					//none with up
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+				}
+
+				//hookes for bottom edge
+				if (i == clothSize - 1)
+				{
+					//none with down component
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					upRightHooke(p_matrix, i, j, spring, damper, rest);
+				}
+
+				//hookes for left edge
+				if (j == 0)
+				{
+					//none that have an left component
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					upRightHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+				}
+
+				//hookes for right edge
+				if (j == clothSize - 1)
+				{
+					//none with right compnent
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+
+					upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+				}
+
+				//all other hookes
+				if (i != 0 && i != clothSize - 1 && j != 0 && j != clothSize - 1)
+				{
+					//all types
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					upRightHooke(p_matrix, i, j, spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+
+				}
 			}
 		}
 
@@ -1037,7 +1160,7 @@ int main()
 	//Integration(app);
 
 	//use force class
-	Rope(app);
+	Cloth(app);
 
 	
 	return EXIT_SUCCESS;
