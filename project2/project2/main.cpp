@@ -96,6 +96,20 @@ bool inCone(Particle p, float *cm)
 		
 }
 
+bool isCorner(int row, int column, int squareSize)
+{
+	if (row == 0 && column == 0)
+		return true;
+	else if (row == 0 && column == squareSize - 1)
+		return true;
+	else if (row == squareSize - 1 && column == 0)
+		return true;
+	else if (row == squareSize - 1 && column == squareSize - 1)
+		return true;
+	else
+		return false;
+}
+
 void Integration(Application app)
 {
 	deltaTime = 0.0f;
@@ -867,39 +881,19 @@ void Cloth(Application app)
 		p_matrix.push_back(row);
 	}
 
-	//for (int i = 0; i < particleNum; i++)
-	//{
-	//	Particle *p = new Particle();
-	//	particles.push_back(p);
-	//	//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
-	//	//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
-	//	particles[i]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
-	//	//particles[i]->rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-	//	particles[i]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+	//set forces for each particle
+	for (int i = 0; i < clothSize; i++)
+	{
+		for (int j = 0; j < clothSize; j++)
+		{
+			//give all but the corners gravity
+			if (!isCorner(i, j, clothSize))
+			{
+				p_matrix[i][j]->addForce(g);
+			}
+		}
 
-
-	//	//initial velocty
-	//	//particles[i]->setVel(glm::vec3(sin(i), 0.0f, cos(i)));
-
-	//	//make ring
-	//	particles[i]->setPos(glm::vec3(sin(i), 6, cos(i)));
-	//	//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
-
-
-
-	//}
-
-	//for (int i = 0; i < particleNum; i++)
-	//{
-	//	//point 0 must get no forces
-	//	if ((i > 0) && (i != particleNum - 1))
-	//	{
-	//		//add gravity, drag and hooke forces
-	//		particles[i]->addForce(g);
-
-	//	}
-	//}
-
+	}
 
 	// time
 	GLfloat firstFrame = (GLfloat)glfwGetTime();
@@ -933,38 +927,18 @@ void Cloth(Application app)
 				
 			}
 
-			//for (int i = 0; i < particleNum; i++)
-			//{
+			for (int i = 0; i < clothSize; i++)
+			{
+				for (int j = 0; j < clothSize; j++)
+				{
+					//Semi-Implicit Euler integration
+					p_matrix[i][j]->getVel() += p_matrix[i][j]->getAcc() * fixedDeltaTime;
+					p_matrix[i][j]->translate(p_matrix[i][j]->getVel() * fixedDeltaTime);
 
-
-			//	//Semi-Implicit Euler integration
-			//	particles[i]->getVel() += particles[i]->getAcc() * fixedDeltaTime;
-			//	particles[i]->translate(particles[i]->getVel() * fixedDeltaTime);
-
-			//	//diagnosing
-			//	//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
-
-			//	//collisions to bound within the box
-			//	for (int j = 0; j < 3; j++)
-			//	{
-			//		if (particles[i]->getTranslate()[3][j] < cube.origin[j])
-			//		{
-			//			glm::vec3 diff = glm::vec3(0.0f);
-			//			diff[j] = cube.origin[j] - particles[i]->getPos()[j];
-			//			particles[i]->setPos(j, cube.origin[j] + diff[j]);
-			//			particles[i]->getVel()[j] *= -0.8f;
-			//		}
-
-			//		if (particles[i]->getTranslate()[3][j] > cube.bound[j])
-			//		{
-			//			glm::vec3 diff = glm::vec3(0.0f);
-			//			diff[j] = cube.bound[j] - particles[i]->getPos()[j];
-			//			particles[i]->setPos(j, cube.bound[j] + diff[j]);
-			//			particles[i]->getVel()[j] *= -0.8f;
-			//		}
-			//	}
-
-			//}
+					//diagnosing
+					//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
+				}
+			}
 
 			accumulator -= fixedDeltaTime;
 			physicsTime += fixedDeltaTime;
