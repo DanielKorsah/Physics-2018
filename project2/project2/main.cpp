@@ -885,7 +885,7 @@ void Chain(Application app)
 	app.terminate();
 }
 
-void Cloth(Application app)
+void Trampoline(Application app)
 {
 	float t = 0.0f;
 
@@ -904,8 +904,8 @@ void Cloth(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 90.0f;
-	float damper = 60.0f;
+	float spring = 70.0f;
+	float damper = 65.0f;
 	float rest = 0.5f;
 
 	
@@ -927,7 +927,7 @@ void Cloth(Application app)
 			row.push_back(particle);
 			row[j]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
 			row[j]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-			row[j]->setPos(glm::vec3(cube.origin.x + 1.5f + j , 3, cube.origin.z + 1.5f + i ));
+			row[j]->setPos(glm::vec3(cube.origin.x + 0.5f + j , 2.5f, cube.origin.z + 0.5f + i ));
 		}
 
 		//add row to matrix
@@ -1056,6 +1056,40 @@ void Cloth(Application app)
 				}
 			}
 
+			for (int i = 0; i < clothSize; i++)
+			{
+				for (int j = 0; j < clothSize; j++)
+				{
+
+
+					//Semi-Implicit Euler integration
+					p_matrix[i][j]->getVel() += p_matrix[i][j]->getAcc() * fixedDeltaTime;
+					p_matrix[i][j]->translate(p_matrix[i][j]->getVel() * fixedDeltaTime);
+
+
+
+					//collisions to bound within the box
+					for (int k = 0; k < 3; k++)
+					{
+						if (p_matrix[i][j]->getTranslate()[3][k] < cube.origin[k])
+						{
+							glm::vec3 diff = glm::vec3(0.0f);
+							diff[k] = cube.origin[k] - p_matrix[i][j]->getPos()[k];
+							p_matrix[i][j]->setPos(k, cube.origin[k] + diff[k]);
+							p_matrix[i][j]->getVel()[k] *= -0.8f;
+						}
+
+						if (p_matrix[i][j]->getTranslate()[3][k] > cube.bound[k])
+						{
+							glm::vec3 diff = glm::vec3(0.0f);
+							diff[j] = cube.bound[j] - p_matrix[i][k]->getPos()[k];
+							p_matrix[i][j]->setPos(k, cube.bound[k] + diff[k]);
+							p_matrix[i][j]->getVel()[k] *= -0.8f;
+						}
+					}
+				}
+			}
+
 			accumulator -= fixedDeltaTime;
 			physicsTime += fixedDeltaTime;
 
@@ -1133,7 +1167,7 @@ void CheckMode(Application app)
 	if (app.keys[GLFW_KEY_5])
 	{
 		app.clear();
-		Cloth(app);
+		Trampoline(app);
 	}
 }
 
@@ -1149,11 +1183,11 @@ int main()
 	blueShader = Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag");
 	transparent = Shader("resources/shaders/solid.vert", "resources/shaders/solid_transparent.frag");
 
-	//coursework 1, particles
+	//start from the beginning
 	//Integration(app);
 
-	//use force class
-	Cloth(app);
+	//shortcut
+	Trampoline(app);
 
 	
 	return EXIT_SUCCESS;
