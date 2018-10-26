@@ -1265,8 +1265,9 @@ void Flag(Application app)
 					upRightHooke(p_matrix, i, j, spring, damper, rest);
 					downLeftHooke(p_matrix, i, j, spring, damper, rest);
 					downRightHooke(p_matrix, i, j, spring, damper, rest);
-
 				}
+
+
 			}
 		}
 
@@ -1301,9 +1302,9 @@ void Flag(Application app)
 				{
 					p_matrix[i][j]->setAcc(p_matrix[i][j]->applyForces(p_matrix[i][j]->getPos(), p_matrix[i][j]->getVel(), physicsTime, fixedDeltaTime));
 				}
-
 			}
 
+			
 			for (int i = 0; i < clothSize; i++)
 			{
 				for (int j = 0; j < clothSize; j++)
@@ -1358,7 +1359,6 @@ void Flag(Application app)
 
 		//toggle modes
 		CheckMode(app);
-
 
 		/*
 		**	RENDER
