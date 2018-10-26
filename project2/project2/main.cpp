@@ -904,17 +904,12 @@ void Cloth(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 50.0f;
-	float damper = 30.0f;
+	float spring = 90.0f;
+	float damper = 60.0f;
 	float rest = 0.5f;
 
-	// create particles
-
 	
-	int particleNum;
-	int clothSize = 5;
-
-	particleNum = clothSize * clothSize;
+	int clothSize = 10;
 
 	//declare particle matrix as vector of vectors
 	std::vector<std::vector<Particle*>> p_matrix;
@@ -932,7 +927,7 @@ void Cloth(Application app)
 			row.push_back(particle);
 			row[j]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
 			row[j]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-			row[j]->setPos(glm::vec3(cube.origin.x + 3.0f + j , 3, cube.origin.z + 3.0f + i ));
+			row[j]->setPos(glm::vec3(cube.origin.x + 1.5f + j , 3, cube.origin.z + 1.5f + i ));
 		}
 
 		//add row to matrix
@@ -961,10 +956,10 @@ void Cloth(Application app)
 					downLeftHooke(p_matrix, i, j, spring, damper, rest);
 					downRightHooke(p_matrix, i, j, spring, damper, rest);
 				}
-
-				//hookes for bottom edge
-				if (i == clothSize - 1)
+				else if (i == clothSize - 1)
 				{
+					//hookes for bottom edge
+
 					//none with down component
 					upHooke(p_matrix, i, j, spring, damper, rest);
 					leftHooke(p_matrix, i, j, spring, damper, rest);
@@ -973,10 +968,10 @@ void Cloth(Application app)
 					upLeftHooke(p_matrix, i, j, spring, damper, rest);
 					upRightHooke(p_matrix, i, j, spring, damper, rest);
 				}
-
-				//hookes for left edge
-				if (j == 0)
+				else if (j == 0)
 				{
+					//hookes for left edge
+
 					//none that have an left component
 					upHooke(p_matrix, i, j, spring, damper, rest);
 					downHooke(p_matrix, i, j, spring, damper, rest);
@@ -985,10 +980,10 @@ void Cloth(Application app)
 					upRightHooke(p_matrix, i, j, spring, damper, rest);
 					downRightHooke(p_matrix, i, j, spring, damper, rest);
 				}
-
-				//hookes for right edge
-				if (j == clothSize - 1)
+				else if (j == clothSize - 1)
 				{
+					//hookes for right edge
+
 					//none with right compnent
 					upHooke(p_matrix, i, j, spring, damper, rest);
 					downHooke(p_matrix, i, j, spring, damper, rest);
@@ -997,10 +992,10 @@ void Cloth(Application app)
 					upLeftHooke(p_matrix, i, j, spring, damper, rest);
 					downLeftHooke(p_matrix, i, j, spring, damper, rest);
 				}
-
-				//all other hookes
-				if (i != 0 && i != clothSize - 1 && j != 0 && j != clothSize - 1)
+				else
 				{
+					//all other hookes
+
 					//all types
 					upHooke(p_matrix, i, j, spring, damper, rest);
 					downHooke(p_matrix, i, j, spring, damper, rest);
@@ -1058,8 +1053,6 @@ void Cloth(Application app)
 					p_matrix[i][j]->getVel() += p_matrix[i][j]->getAcc() * fixedDeltaTime;
 					p_matrix[i][j]->translate(p_matrix[i][j]->getVel() * fixedDeltaTime);
 
-					//diagnosing
-					//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
 				}
 			}
 
