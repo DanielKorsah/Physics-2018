@@ -837,55 +837,68 @@ void Cloth(Application app)
 	float rest = 0.5f;
 
 	// create particles
-	std::vector<Particle*> particles;
-	int particleNum = 10;
-	for (int i = 0; i < particleNum; i++)
+
+	
+	int particleNum;
+	int clothSize = 5;
+
+	particleNum = clothSize * clothSize;
+
+	//declare particle matrix as vector of vectors
+	std::vector<std::vector<Particle*>> p_matrix;
+
+	//**NOTE**: I'm indexing first by row then by column
+
+	//Create the matrix of particles
+	for (int i = 0; i < clothSize; i++)
 	{
-		Particle *p = new Particle();
-		particles.push_back(p);
-		//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
-		//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
-		particles[i]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
-		//particles[i]->rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
-		particles[i]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-
-
-		//initial velocty
-		//particles[i]->setVel(glm::vec3(sin(i), 0.0f, cos(i)));
-
-		//make ring
-		particles[i]->setPos(glm::vec3(sin(i), 6, cos(i)));
-		//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
-
-
-
-	}
-
-	for (int i = 0; i < particleNum; i++)
-	{
-		//point 0 must get no forces
-		if ((i > 0) && (i != particleNum - 1))
+		//declare new row
+		std::vector<Particle*> row;
+		for (int j = 0; j < clothSize;  j++)
 		{
-			//add gravity, drag and hooke forces
-			particles[i]->addForce(g);
-
-			/*Drag* d = new Drag();
-			particles[i]->addForce(d);*/
-			Hooke* hooke1 = new Hooke(particles[i], particles[i - 1], spring, damper, rest);
-			particles[i]->addForce(hooke1);
-			if (i > 1)
-			{
-				Hooke* hooke2 = new Hooke(particles[i - 1], particles[i], spring, damper, rest);
-				particles[i - 1]->addForce(hooke2);
-			}
-			if (i == particleNum - 2)
-			{
-				Hooke* hooke3 = new Hooke(particles[i], particles[i + 1], spring, damper, rest);
-				particles[i]->addForce(hooke3);
-			}
+			Particle *particle = new Particle();
+			row.push_back(particle);
+			row[j]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+			row[j]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+			row[j]->setPos(glm::vec3(cube.origin.x + 3.0f + j , 3, cube.origin.z + 3.0f + i ));
 		}
+
+		//add row to matrix
+		p_matrix.push_back(row);
 	}
 
+	//for (int i = 0; i < particleNum; i++)
+	//{
+	//	Particle *p = new Particle();
+	//	particles.push_back(p);
+	//	//scale it down (x.1), translate it up by 2.5 and rotate it by 90 degrees around the x axis
+	//	//particles[i].setPos(glm::vec3(0.0f, 4.0f, 0.0f));
+	//	particles[i]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+	//	//particles[i]->rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
+	//	particles[i]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+
+
+	//	//initial velocty
+	//	//particles[i]->setVel(glm::vec3(sin(i), 0.0f, cos(i)));
+
+	//	//make ring
+	//	particles[i]->setPos(glm::vec3(sin(i), 6, cos(i)));
+	//	//particles[i]->setVel(glm::vec3(sin(i)*1.5f, .0f, cos(i)*1.5f));
+
+
+
+	//}
+
+	//for (int i = 0; i < particleNum; i++)
+	//{
+	//	//point 0 must get no forces
+	//	if ((i > 0) && (i != particleNum - 1))
+	//	{
+	//		//add gravity, drag and hooke forces
+	//		particles[i]->addForce(g);
+
+	//	}
+	//}
 
 
 	// time
@@ -911,47 +924,47 @@ void Cloth(Application app)
 		while (accumulator >= fixedDeltaTime)
 		{
 
-			for (int i = 0; i < particleNum; i++)
+			for (int i = 0; i < clothSize; i++)
 			{
-				particles[i]->setAcc(particles[i]->applyForces(particles[i]->getPos(), particles[i]->getVel(), physicsTime, fixedDeltaTime));
-				if (particles[i]->getAcc() != particles[i]->getAcc())
+				for (int j = 0; j < clothSize; j++)
 				{
-					std::cout << i << " is broke :  " << glm::to_string(particles[i]->getAcc()) << std::endl;
+					p_matrix[i][j]->setAcc(p_matrix[i][j]->applyForces(p_matrix[i][j]->getPos(), p_matrix[i][j]->getVel(), physicsTime, fixedDeltaTime));
 				}
+				
 			}
 
-			for (int i = 0; i < particleNum; i++)
-			{
+			//for (int i = 0; i < particleNum; i++)
+			//{
 
 
-				//Semi-Implicit Euler integration
-				particles[i]->getVel() += particles[i]->getAcc() * fixedDeltaTime;
-				particles[i]->translate(particles[i]->getVel() * fixedDeltaTime);
+			//	//Semi-Implicit Euler integration
+			//	particles[i]->getVel() += particles[i]->getAcc() * fixedDeltaTime;
+			//	particles[i]->translate(particles[i]->getVel() * fixedDeltaTime);
 
-				//diagnosing
-				//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
+			//	//diagnosing
+			//	//std::cout<< i << " "<< glm::to_string(particles[i]->getVel())<<std::endl;
 
-				//collisions to bound within the box
-				for (int j = 0; j < 3; j++)
-				{
-					if (particles[i]->getTranslate()[3][j] < cube.origin[j])
-					{
-						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.origin[j] - particles[i]->getPos()[j];
-						particles[i]->setPos(j, cube.origin[j] + diff[j]);
-						particles[i]->getVel()[j] *= -0.8f;
-					}
+			//	//collisions to bound within the box
+			//	for (int j = 0; j < 3; j++)
+			//	{
+			//		if (particles[i]->getTranslate()[3][j] < cube.origin[j])
+			//		{
+			//			glm::vec3 diff = glm::vec3(0.0f);
+			//			diff[j] = cube.origin[j] - particles[i]->getPos()[j];
+			//			particles[i]->setPos(j, cube.origin[j] + diff[j]);
+			//			particles[i]->getVel()[j] *= -0.8f;
+			//		}
 
-					if (particles[i]->getTranslate()[3][j] > cube.bound[j])
-					{
-						glm::vec3 diff = glm::vec3(0.0f);
-						diff[j] = cube.bound[j] - particles[i]->getPos()[j];
-						particles[i]->setPos(j, cube.bound[j] + diff[j]);
-						particles[i]->getVel()[j] *= -0.8f;
-					}
-				}
+			//		if (particles[i]->getTranslate()[3][j] > cube.bound[j])
+			//		{
+			//			glm::vec3 diff = glm::vec3(0.0f);
+			//			diff[j] = cube.bound[j] - particles[i]->getPos()[j];
+			//			particles[i]->setPos(j, cube.bound[j] + diff[j]);
+			//			particles[i]->getVel()[j] *= -0.8f;
+			//		}
+			//	}
 
-			}
+			//}
 
 			accumulator -= fixedDeltaTime;
 			physicsTime += fixedDeltaTime;
@@ -983,9 +996,12 @@ void Cloth(Application app)
 		// draw groud plane
 		app.draw(plane);
 		// draw particles
-		for (int i = 0; i < particleNum; i++)
+		for (int i = 0; i < clothSize; i++)
 		{
-			app.draw(particles[i]->getMesh());
+			for (int j = 0; j < clothSize; j++)
+			{
+				app.draw(p_matrix[i][j]->getMesh());
+			}
 		}
 
 
