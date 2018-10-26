@@ -22,7 +22,7 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-!**/resources/models/*
+!/project2/project2/*/resources/**
 [Ll]og/
 
 # Visual Studio 2015/2017 cache/options directory
