@@ -1135,6 +1135,264 @@ void Trampoline(Application app)
 	app.terminate();
 }
 
+void Flag(Application app)
+{
+	float t = 0.0f;
+
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x5
+	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+
+	//create forces
+	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+	Drag* d = new Drag();
+
+	//Hooke parameter controls
+	float spring = 70.0f;
+	float damper = 65.0f;
+	float rest = 0.5f;
+
+
+	int clothSize = 10;
+
+	//declare particle matrix as vector of vectors
+	std::vector<std::vector<Particle*>> p_matrix;
+
+	//**NOTE**: I'm indexing first by row then by column
+
+	//Create the matrix of particles
+	for (int i = 0; i < clothSize; i++)
+	{
+		//declare new row
+		std::vector<Particle*> row;
+		for (int j = 0; j < clothSize; j++)
+		{
+			Particle *particle = new Particle();
+			row.push_back(particle);
+			row[j]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+			row[j]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+			row[j]->setPos(glm::vec3(cube.origin.x + 5.0f + j, 5.0f, cube.origin.z + 0.5f + i));
+		}
+
+		//add row to matrix
+		p_matrix.push_back(row);
+	}
+
+	//set forces for each particle
+	for (int i = 0; i < clothSize; i++)
+	{
+		for (int j = 0; j < clothSize; j++)
+		{
+			//give all but the corners forces
+			if (!(i == 0 && j == 0) && !(i == 0 && j == clothSize - 1))
+			{
+				//gravity
+				p_matrix[i][j]->addForce(g);
+
+				//hookes for top edge
+				if (i == 0)
+				{
+					//none with up
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+				}
+				else if (i == clothSize - 1)
+				{
+					//hookes for bottom edge
+
+					//none with down component
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					
+
+					if (j != clothSize - 1)
+					{
+						rightHooke(p_matrix, i, j, spring, damper, rest);
+						upRightHooke(p_matrix, i, j, spring, damper, rest);
+					}
+
+					if (j != 0)
+					{
+						leftHooke(p_matrix, i, j, spring, damper, rest);
+						upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					}
+					
+				}
+				else if (j == 0)
+				{
+					//hookes for left edge
+
+					//none that have an left component
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					upRightHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+				}
+				else if (j == clothSize - 1)
+				{
+					//hookes for right edge
+
+					//none with right compnent
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+
+					upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+				}
+				else
+				{
+					//all other hookes
+
+					//all types
+					upHooke(p_matrix, i, j, spring, damper, rest);
+					downHooke(p_matrix, i, j, spring, damper, rest);
+					leftHooke(p_matrix, i, j, spring, damper, rest);
+					rightHooke(p_matrix, i, j, spring, damper, rest);
+
+					upLeftHooke(p_matrix, i, j, spring, damper, rest);
+					upRightHooke(p_matrix, i, j, spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+					downRightHooke(p_matrix, i, j, spring, damper, rest);
+
+				}
+			}
+		}
+
+	}
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 0.0f;
+	const double fixedDeltaTime = 0.001f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+		while (accumulator >= fixedDeltaTime)
+		{
+
+			for (int i = 0; i < clothSize; i++)
+			{
+				for (int j = 0; j < clothSize; j++)
+				{
+					p_matrix[i][j]->setAcc(p_matrix[i][j]->applyForces(p_matrix[i][j]->getPos(), p_matrix[i][j]->getVel(), physicsTime, fixedDeltaTime));
+				}
+
+			}
+
+			for (int i = 0; i < clothSize; i++)
+			{
+				for (int j = 0; j < clothSize; j++)
+				{
+					//Semi-Implicit Euler integration
+					p_matrix[i][j]->getVel() += p_matrix[i][j]->getAcc() * fixedDeltaTime;
+					p_matrix[i][j]->translate(p_matrix[i][j]->getVel() * fixedDeltaTime);
+
+				}
+			}
+
+			for (int i = 0; i < clothSize; i++)
+			{
+				for (int j = 0; j < clothSize; j++)
+				{
+
+
+					//Semi-Implicit Euler integration
+					p_matrix[i][j]->getVel() += p_matrix[i][j]->getAcc() * fixedDeltaTime;
+					p_matrix[i][j]->translate(p_matrix[i][j]->getVel() * fixedDeltaTime);
+
+
+
+					//collisions to bound within the box
+					for (int k = 0; k < 3; k++)
+					{
+						if (p_matrix[i][j]->getTranslate()[3][k] < cube.origin[k])
+						{
+							glm::vec3 diff = glm::vec3(0.0f);
+							diff[k] = cube.origin[k] - p_matrix[i][j]->getPos()[k];
+							p_matrix[i][j]->setPos(k, cube.origin[k] + diff[k]);
+							p_matrix[i][j]->getVel()[k] *= -0.8f;
+						}
+
+						if (p_matrix[i][j]->getTranslate()[3][k] > cube.bound[k])
+						{
+							glm::vec3 diff = glm::vec3(0.0f);
+							diff[j] = cube.bound[j] - p_matrix[i][k]->getPos()[k];
+							p_matrix[i][j]->setPos(k, cube.bound[k] + diff[k]);
+							p_matrix[i][j]->getVel()[k] *= -0.8f;
+						}
+					}
+				}
+			}
+
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+
+		}
+
+		// Set frame time
+		GLfloat currentFrame = (GLfloat)glfwGetTime() - firstFrame;
+		// the animation can be sped up or slowed down by multiplying currentFrame by a factor.
+		currentFrame *= 1.5f;
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
+		//toggle modes
+		CheckMode(app);
+
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+		// draw particles
+		for (int i = 0; i < clothSize; i++)
+		{
+			for (int j = 0; j < clothSize; j++)
+			{
+				app.draw(p_matrix[i][j]->getMesh());
+			}
+		}
+
+
+		app.display();
+
+	}
+	app.terminate();
+}
 
 //demo switching method
 void CheckMode(Application app)
@@ -1169,6 +1427,12 @@ void CheckMode(Application app)
 		app.clear();
 		Trampoline(app);
 	}
+
+	if (app.keys[GLFW_KEY_6])
+	{
+		app.clear();
+		Flag(app);
+	}
 }
 
 // main function
@@ -1187,7 +1451,7 @@ int main()
 	//Integration(app);
 
 	//shortcut
-	Trampoline(app);
+	Rope(app);
 
 	
 	return EXIT_SUCCESS;
