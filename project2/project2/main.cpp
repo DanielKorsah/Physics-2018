@@ -1154,9 +1154,9 @@ void Flag(Application app)
 	Drag* d = new Drag();
 
 	//Hooke parameter controls
-	float spring = 70.0f;
-	float damper = 65.0f;
-	float rest = 0.5f;
+	float spring = 200.0f;
+	float damper = 50.0f;
+	float rest = 1.0f;
 
 
 	int clothSize = 10;
@@ -1177,7 +1177,7 @@ void Flag(Application app)
 			row.push_back(particle);
 			row[j]->scale(glm::vec3(0.5f, 0.5f, 0.5f));
 			row[j]->getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
-			row[j]->setPos(glm::vec3(cube.origin.x + 5.0f + j, 5.0f, cube.origin.z + 0.5f + i));
+			row[j]->setPos(glm::vec3(cube.origin.x + 0.5f + j, 8.0f, cube.origin.z + 5.0f + i));
 		}
 
 		//add row to matrix
@@ -1327,25 +1327,14 @@ void Flag(Application app)
 
 
 
-					//collisions to bound within the box
-					for (int k = 0; k < 3; k++)
+					//collisions to bound to above plane
+					if (p_matrix[i][j]->getPos().y < 0)
 					{
-						if (p_matrix[i][j]->getTranslate()[3][k] < cube.origin[k])
-						{
-							glm::vec3 diff = glm::vec3(0.0f);
-							diff[k] = cube.origin[k] - p_matrix[i][j]->getPos()[k];
-							p_matrix[i][j]->setPos(k, cube.origin[k] + diff[k]);
-							p_matrix[i][j]->getVel()[k] *= -0.8f;
-						}
-
-						if (p_matrix[i][j]->getTranslate()[3][k] > cube.bound[k])
-						{
-							glm::vec3 diff = glm::vec3(0.0f);
-							diff[j] = cube.bound[j] - p_matrix[i][k]->getPos()[k];
-							p_matrix[i][j]->setPos(k, cube.bound[k] + diff[k]);
-							p_matrix[i][j]->getVel()[k] *= -0.8f;
-						}
+							
+						p_matrix[i][j]->setPos(glm::vec3(p_matrix[i][j]->getPos().x , 0, p_matrix[i][j]->getPos().z));
+						p_matrix[i][j]->getVel().y *= -0.2f;
 					}
+						
 				}
 			}
 
