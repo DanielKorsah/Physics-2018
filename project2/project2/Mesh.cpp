@@ -164,7 +164,8 @@ Mesh::Mesh(MeshType type)
 	{
 		for (int j = 0; j < m_vertices.size; j++)
 		{
-			if (m_vertices[i] == m_vertices[j] && i != j)
+			//if 2 verteces have the same coords but are not he same vertex compared to itself then remove it from the 
+			if (m_vertices[i].getCoord() == m_vertices[j].getCoord() && i != j)
 				m_vertices.erase(m_vertices.begin() + j);
 		}
 	}
