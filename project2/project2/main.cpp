@@ -1143,7 +1143,7 @@ void Flag(Application app)
 	lastFrame = 0.0f;
 
 	// create ground plane
-	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	Mesh plane = Mesh::Mesh(Mesh::CUBE);
 	// scale it up x5
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
 	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
@@ -1387,6 +1387,78 @@ void Flag(Application app)
 	app.terminate();
 }
 
+void RigidBody1(Application app)
+{
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x5
+	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 1.0f;
+	const double fixedDeltaTime = 0.01f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+
+	// Game loop
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+		while (accumulator >= fixedDeltaTime)
+		{
+			
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+		}
+
+		// Set frame time
+		GLfloat currentFrame = (GLfloat)glfwGetTime() - firstFrame;
+		// the animation can be sped up or slowed down by multiplying currentFrame by a factor.
+		currentFrame *= 1.5f;
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
+		//switch mode
+		CheckMode(app);
+
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+
+		app.display();
+	}
+
+	app.terminate();
+}
+
 //demo switching method
 void CheckMode(Application app)
 {
@@ -1443,8 +1515,11 @@ int main()
 	//start from the beginning
 	//Integration(app);
 
-	//shortcut
-	Rope(app);
+	//mass spring shortcut
+	//Rope(app);
+
+	//rigidbody shortcut
+	RigidBody1(app);
 
 	
 	return EXIT_SUCCESS;

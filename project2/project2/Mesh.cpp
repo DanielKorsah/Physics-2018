@@ -164,6 +164,7 @@ Mesh::Mesh(MeshType type)
 	{
 		for (int j = 0; j < m_vertices.size(); j++)
 		{
+			
 			//if 2 verteces have the same coords but are not he same vertex compared to itself then remove it from the 
 			if (m_vertices[i].getCoord() == m_vertices[j].getCoord() && i != j)
 			{
@@ -173,7 +174,7 @@ Mesh::Mesh(MeshType type)
 		}
 	}
 
-	/*for (int i = 0; i < m_vertices.size; i++)
+	/*for (int i = 0; i < m_vertices.size(); i++)
 	{
 		std::cout << std::to_string(m_vertices[i].getCoord().x) <<  " " << std::to_string(m_vertices[i].getCoord().y) << " " << std::to_string(m_vertices[i].getCoord().z) << " " << std::endl;
 	}*/
