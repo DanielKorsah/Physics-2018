@@ -160,15 +160,23 @@ Mesh::Mesh(MeshType type)
 	//generate unique vertex vector (no duplicates)
 	m_vertices = std::vector<Vertex>(std::begin(vertices), std::end(vertices));
 	//for each 
-	for (int i = 0; i < m_vertices.size; i++)
+	for (int i = 0; i < m_vertices.size(); i++)
 	{
-		for (int j = 0; j < m_vertices.size; j++)
+		for (int j = 0; j < m_vertices.size(); j++)
 		{
 			//if 2 verteces have the same coords but are not he same vertex compared to itself then remove it from the 
 			if (m_vertices[i].getCoord() == m_vertices[j].getCoord() && i != j)
+			{
 				m_vertices.erase(m_vertices.begin() + j);
+				j--;
+			}
 		}
 	}
+
+	/*for (int i = 0; i < m_vertices.size; i++)
+	{
+		std::cout << std::to_string(m_vertices[i].getCoord().x) <<  " " << std::to_string(m_vertices[i].getCoord().y) << " " << std::to_string(m_vertices[i].getCoord().z) << " " << std::endl;
+	}*/
 	
 
 	//create mesh
