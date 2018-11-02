@@ -1155,8 +1155,12 @@ void Flag(Application app)
 
 	//Hooke parameter controls
 	float spring = 200.0f;
-	float damper = 50.0f;
+	float damper = 10.0f;
 	float rest = 1.0f;
+
+	float diagonal_spring = 00.0f;
+	float diagonal_damper = 10.0f;
+	float diagonal_rest = 2.8f;
 
 
 	int clothSize = 10;
@@ -1203,8 +1207,8 @@ void Flag(Application app)
 					leftHooke(p_matrix, i, j, spring, damper, rest);
 					rightHooke(p_matrix, i, j, spring, damper, rest);
 
-					downLeftHooke(p_matrix, i, j, spring, damper, rest);
-					downRightHooke(p_matrix, i, j, spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					downRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 				}
 				else if (i == clothSize - 1)
 				{
@@ -1217,13 +1221,13 @@ void Flag(Application app)
 					if (j != clothSize - 1)
 					{
 						rightHooke(p_matrix, i, j, spring, damper, rest);
-						upRightHooke(p_matrix, i, j, spring, damper, rest);
+						upRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 					}
 
 					if (j != 0)
 					{
 						leftHooke(p_matrix, i, j, spring, damper, rest);
-						upLeftHooke(p_matrix, i, j, spring, damper, rest);
+						upLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 					}
 					
 				}
@@ -1236,8 +1240,8 @@ void Flag(Application app)
 					downHooke(p_matrix, i, j, spring, damper, rest);
 					rightHooke(p_matrix, i, j, spring, damper, rest);
 
-					upRightHooke(p_matrix, i, j, spring, damper, rest);
-					downRightHooke(p_matrix, i, j, spring, damper, rest);
+					upRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					downRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 				}
 				else if (j == clothSize - 1)
 				{
@@ -1248,8 +1252,8 @@ void Flag(Application app)
 					downHooke(p_matrix, i, j, spring, damper, rest);
 					leftHooke(p_matrix, i, j, spring, damper, rest);
 
-					upLeftHooke(p_matrix, i, j, spring, damper, rest);
-					downLeftHooke(p_matrix, i, j, spring, damper, rest);
+					upLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 				}
 				else
 				{
@@ -1261,10 +1265,10 @@ void Flag(Application app)
 					leftHooke(p_matrix, i, j, spring, damper, rest);
 					rightHooke(p_matrix, i, j, spring, damper, rest);
 
-					upLeftHooke(p_matrix, i, j, spring, damper, rest);
-					upRightHooke(p_matrix, i, j, spring, damper, rest);
-					downLeftHooke(p_matrix, i, j, spring, damper, rest);
-					downRightHooke(p_matrix, i, j, spring, damper, rest);
+					upLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					upRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					downLeftHooke(p_matrix, i, j, diagonal_spring, damper, rest);
+					downRightHooke(p_matrix, i, j, diagonal_spring, damper, rest);
 				}
 
 
