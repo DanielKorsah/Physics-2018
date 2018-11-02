@@ -156,6 +156,18 @@ Mesh::Mesh(MeshType type)
 
 		break;
 	}
+
+	//generate unique vertex vector (no duplicates)
+	m_vertices = std::vector<Vertex>(std::begin(vertices), std::end(vertices));
+	//for each 
+	for (int i = 0; i < m_vertices.size; i++)
+	{
+		for (int j = 0; j < m_vertices.size; j++)
+		{
+			if (m_vertices[i] == m_vertices[j] && i != j)
+				m_vertices.erase(m_vertices.begin() + j);
+		}
+	}
 	
 
 	//create mesh

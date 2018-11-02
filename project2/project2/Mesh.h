@@ -132,6 +132,8 @@ public:
 	GLuint m_vertexBuffer;
 	GLuint m_normalBuffer;
 
+	std::vector<Vertex> getVertices() { return m_vertices; }
+
 private:
 
 	unsigned int m_numIndices;
@@ -140,6 +142,8 @@ private:
 	glm::mat4 m_scale;
 
 	Shader m_shader;
+
+	std::vector<Vertex> m_vertices;
 };
 
 
