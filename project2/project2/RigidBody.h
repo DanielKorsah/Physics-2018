@@ -4,8 +4,8 @@
 class RigidBody : public Body
 {
 public:
-	RigidBody();
-	~RigidBody();
+	RigidBody() : Body() {}
+	~RigidBody() {}
 
 	//setters and getters
 	void setAngVel(const glm::vec3 &omega) { m_angVel = omega; }
@@ -15,7 +15,13 @@ public:
 	glm::vec3 getAngVel() { return m_angVel; }
 	glm::vec3 getAngAcc() { return m_angAcc; }
 	glm::mat3 getinvInertia() { return m_invInertia; }
-	void scale(glm::vec3 vect);
+	void scale(glm::vec3 vect)
+	{
+		Body::scale(vect);
+	}
+
+	glm::mat3 getScale() { return Body::getScale(); }
+
 
 private:
 	float m_density;

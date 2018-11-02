@@ -26,6 +26,7 @@
 #include "Mesh.h"
 #include "Particle.h"
 #include "Body.h"
+#include "RigidBody.h"
 
 Shader redShader;
 Shader blueShader;
@@ -1143,7 +1144,7 @@ void Flag(Application app)
 	lastFrame = 0.0f;
 
 	// create ground plane
-	Mesh plane = Mesh::Mesh(Mesh::CUBE);
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
 	// scale it up x5
 	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
 	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
@@ -1409,6 +1410,22 @@ void RigidBody1(Application app)
 	double currentTime = (GLfloat)glfwGetTime();
 	double accumulator = 0.0f;
 
+	//set up cubic rigidbody
+	RigidBody rb = RigidBody();
+	Mesh m = Mesh::Mesh(Mesh::CUBE);
+	rb.setMesh(m);
+	Shader rbShader = Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag");
+	rb.getMesh().setShader(rbShader);
+	rb.scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+	//rigid body motion values
+	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
+	rb.setVel(glm::vec3(0.0f, 5.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 5.0f, 0.0f));
+
+	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+
+	rb.addForce(g);
 
 	// Game loop
 	while (!glfwWindowShouldClose(app.getWindow()))
@@ -1421,9 +1438,22 @@ void RigidBody1(Application app)
 
 		accumulator += frameTime;
 
+		
+
 		while (accumulator >= fixedDeltaTime)
 		{
-			
+
+			//Semi - Implicit Euler integration
+			rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
+			rb.translate(rb.Body::getVel() * fixedDeltaTime);
+
+			//collision
+			//scale[1][1] is y scale
+			if (rb.getPos().y <= plane.getPos().y + rb.getScale()[1][1])
+			{
+				rb.Body::setPos(1, plane.getPos().y + rb.getScale()[1][1]);
+			}
+
 			accumulator -= fixedDeltaTime;
 			physicsTime += fixedDeltaTime;
 		}
@@ -1452,6 +1482,7 @@ void RigidBody1(Application app)
 		app.clear();
 		// draw groud plane
 		app.draw(plane);
+		app.draw(rb.getMesh());
 
 		app.display();
 	}

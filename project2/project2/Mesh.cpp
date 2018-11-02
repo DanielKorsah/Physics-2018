@@ -174,12 +174,6 @@ Mesh::Mesh(MeshType type)
 		}
 	}
 
-	/*for (int i = 0; i < m_vertices.size(); i++)
-	{
-		std::cout << std::to_string(m_vertices[i].getCoord().x) <<  " " << std::to_string(m_vertices[i].getCoord().y) << " " << std::to_string(m_vertices[i].getCoord().z) << " " << std::endl;
-	}*/
-	
-
 	//create mesh
 	initMesh(vertices, normals);
 	//initMesh(vertices, normals, sizeof(vertices));
