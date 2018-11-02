@@ -1420,9 +1420,8 @@ void RigidBody1(Application app)
 
 	//rigid body motion values
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
-	rb.setVel(glm::vec3(0.0f, 5.0f, 0.0f));
+	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
 	rb.setAngVel(glm::vec3(0.0f, 5.0f, 0.0f));
-
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1438,10 +1437,11 @@ void RigidBody1(Application app)
 
 		accumulator += frameTime;
 
-		
 
 		while (accumulator >= fixedDeltaTime)
 		{
+
+			rb.setAcc(rb.applyForces(rb.Body::getPos(), rb.Body::getVel(), physicsTime, fixedDeltaTime));
 
 			//Semi - Implicit Euler integration
 			rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
