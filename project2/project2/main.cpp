@@ -1474,7 +1474,6 @@ void RigidBody1(Application app)
 		//switch mode
 		CheckMode(app);
 
-
 		/*
 		**	RENDER
 		*/
