@@ -22,6 +22,9 @@ public:
 	glm::mat4 getRotate() const { return m_mesh.getRotate(); }
 	glm::mat4 getScale() const { return m_mesh.getScale(); }
 
+	//set rotation matrix
+	void setRotate(const glm::mat4 &mat) { m_mesh.setRotate(mat); }
+
 	// dynamic variables
 	glm::vec3& getAcc() { return m_acc; }
 	glm::vec3& getVel() { return m_vel; }

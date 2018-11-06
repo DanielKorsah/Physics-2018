@@ -1421,7 +1421,7 @@ void RigidBody1(Application app)
 	//rigid body motion values
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	rb.setAngVel(glm::vec3(0.0f, 5.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 2.0f, 0.0f));
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1446,6 +1446,18 @@ void RigidBody1(Application app)
 			//Semi - Implicit Euler integration
 			rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
 			rb.translate(rb.Body::getVel() * fixedDeltaTime);
+
+			//rotation integration
+			rb.setAngVel(rb.getAngVel() + fixedDeltaTime * rb.getAngAcc());
+			//create skew symetric matrix for w
+			glm::mat3 angVelSkew = glm::matrixCross3(rb.getAngVel());
+			//create 3x3 rotation matrix from rb rotation matrix
+			glm::mat3 R = glm::mat3(rb.getRotate());
+			//update rotation matrix
+			R += fixedDeltaTime * angVelSkew * R;
+			R = glm::orthonormalize(R);
+			rb.setRotate(glm::mat4(R));
+
 
 			//collision
 			//scale[1][1] is y scale
