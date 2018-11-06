@@ -19,8 +19,8 @@ public:
 
 	// transform matrices
 	glm::mat4 getTranslate() const { return m_mesh.getTranslate(); }
-	glm::mat4 getRotate() const { return m_mesh.getRotate(); }
-	glm::mat4 getScale() const { return m_mesh.getScale(); }
+	glm::mat3 getRotate() const { return m_mesh.getRotate(); }
+	glm::mat3 getScale() const { return m_mesh.getScale(); }
 
 	//set rotation matrix
 	void setRotate(const glm::mat4 &mat) { m_mesh.setRotate(mat); }
@@ -70,7 +70,8 @@ public:
 		{
 			fAccumulator += f->apply(getMass(), x, v);
 		}
-
+		//guard against nans
+		if (getMass() == 0) { setMass(1.0f); }
 		return fAccumulator / getMass();
 	}
 	void addForce(Force* f) { m_forces.push_back(f); }

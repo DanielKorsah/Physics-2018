@@ -10,7 +10,7 @@ public:
 	//setters and getters
 	void setAngVel(const glm::vec3 &omega) { m_angVel = omega; }
 	void setAngAcc(const glm::vec3 &alpha) { m_angAcc = alpha; }
-	void setInvIntertia(const glm::mat3 &invInertia) { m_invInertia; }
+	void setInvIntertia(const glm::mat3 &invInertia);
 
 	glm::vec3 getAngVel() { return m_angVel; }
 	glm::vec3 getAngAcc() { return m_angAcc; }

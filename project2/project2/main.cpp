@@ -1501,6 +1501,121 @@ void RigidBody1(Application app)
 	app.terminate();
 }
 
+
+void RigidBody2(Application app)
+{
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x5
+	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 1.0f;
+	const double fixedDeltaTime = 0.01f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+	//set up cubic rigidbody
+	RigidBody rb = RigidBody();
+	Mesh m = Mesh::Mesh(Mesh::CUBE);
+	rb.setMesh(m);
+	Shader rbShader = Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag");
+	rb.getMesh().setShader(rbShader);
+	rb.scale(glm::vec3(2.0f, 1.0f, 1.0f));
+	rb.setMass(1.0f);
+
+	//rigid body motion values
+	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
+	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 2.0f, 0.0f));
+	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+
+	rb.addForce(g);
+
+	// Game loop
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+
+		while (accumulator >= fixedDeltaTime)
+		{
+
+			rb.setAcc(rb.applyForces(rb.Body::getPos(), rb.Body::getVel(), physicsTime, fixedDeltaTime));
+
+			//Semi - Implicit Euler integration
+			rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
+			rb.translate(rb.Body::getVel() * fixedDeltaTime);
+
+			//rotation integration
+			rb.setAngVel(rb.getAngVel() + fixedDeltaTime * rb.getAngAcc());
+			//create skew symetric matrix for w
+			glm::mat3 angVelSkew = glm::matrixCross3(rb.getAngVel());
+			//create 3x3 rotation matrix from rb rotation matrix
+			glm::mat3 R = glm::mat3(rb.getRotate());
+			//update rotation matrix
+			R += fixedDeltaTime * angVelSkew * R;
+			R = glm::orthonormalize(R);
+			rb.setRotate(glm::mat4(R));
+
+
+			//collision
+			//scale[1][1] is y scale
+			if (rb.getPos().y <= plane.getPos().y + rb.getScale()[1][1])
+			{
+				rb.Body::setPos(1, plane.getPos().y + rb.getScale()[1][1]);
+			}
+
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+		}
+
+		// Set frame time
+		GLfloat currentFrame = (GLfloat)glfwGetTime() - firstFrame;
+		// the animation can be sped up or slowed down by multiplying currentFrame by a factor.
+		currentFrame *= 1.5f;
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
+		//switch mode
+		CheckMode(app);
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+		app.draw(rb.getMesh());
+
+		app.display();
+	}
+
+	app.terminate();
+}
+
 //demo switching method
 void CheckMode(Application app)
 {
@@ -1561,7 +1676,7 @@ int main()
 	//Rope(app);
 
 	//rigidbody shortcut
-	RigidBody1(app);
+	RigidBody2(app);
 
 	
 	return EXIT_SUCCESS;
