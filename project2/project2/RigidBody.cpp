@@ -11,7 +11,7 @@
 #include <glm/gtx/matrix_operation.hpp>
 #include "glm/ext.hpp"
 
-void RigidBody::setInvIntertia(const glm::mat3 &invInertia)
+void RigidBody::setInvInertia(const glm::mat3 &invInertia)
 {
 	float twelfthMass = 1.0f / 12.0f * Body::getMass();
 	//get x scale value for width
@@ -30,8 +30,12 @@ void RigidBody::setInvIntertia(const glm::mat3 &invInertia)
 	};
 
 	m_invInertia = getRotate() * glm::inverse(inertia) * glm::transpose(getRotate());
+}
 
-
+glm::mat3 RigidBody::getinvInertia() 
+{ 
+	setInvInertia(m_invInertia);
+	return m_invInertia; 
 }
 
 
