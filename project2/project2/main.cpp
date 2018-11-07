@@ -1563,6 +1563,8 @@ void RigidBody2(Application app)
 			rb.translate(rb.Body::getVel() * fixedDeltaTime);
 
 			//rotation integration
+
+			//set w
 			rb.setAngVel(rb.getAngVel() + fixedDeltaTime * rb.getAngAcc());
 			//create skew symetric matrix for w
 			glm::mat3 angVelSkew = glm::matrixCross3(rb.getAngVel());
@@ -1573,12 +1575,38 @@ void RigidBody2(Application app)
 			R = glm::orthonormalize(R);
 			rb.setRotate(glm::mat4(R));
 
+			
 
 			//collision
+
+			std::vector<glm::vec3> collisionPoints;
 			//scale[1][1] is y scale
-			if (rb.getPos().y <= plane.getPos().y + rb.getScale()[1][1])
+
+			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
+			for (Vertex v : rb.getMesh().Mesh::getVertices())
 			{
-				rb.Body::setPos(1, plane.getPos().y + rb.getScale()[1][1]);
+				if (v.getCoord().y < plane.getPos().y)
+				{
+					collisionPoints.push_back(v.getCoord());
+				}
+			}
+
+			glm::vec3 colPoint;
+			if (collisionPoints.size() > 1)
+			{
+				glm::vec3 sumVec;
+				for (glm::vec3 p : collisionPoints)
+				{
+					sumVec += p;
+				}
+
+				glm::vec3 avgVec = sumVec / collisionPoints.size();
+
+				colPoint = avgVec;
+			}
+			else
+			{
+				colPoint = collisionPoints[0];
 			}
 
 			accumulator -= fixedDeltaTime;

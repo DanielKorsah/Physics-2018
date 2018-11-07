@@ -14,7 +14,7 @@ public:
 
 	glm::vec3 getAngVel() { return m_angVel; }
 	glm::vec3 getAngAcc() { return m_angAcc; }
-	glm::mat3 getinvInertia() { return m_invInertia; }
+	glm::mat3 getinvInertia();
 	void scale(glm::vec3 vect)
 	{
 		Body::scale(vect);

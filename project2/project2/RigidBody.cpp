@@ -1,3 +1,4 @@
+#pragma once
 // Math constants
 #define _USE_MATH_DEFINES
 #include <cmath>  
