@@ -1580,7 +1580,6 @@ void RigidBody2(Application app)
 			//collision
 
 			std::vector<glm::vec3> collisionPoints = {};
-			//scale[1][1] is y scale
 
 			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
 			for (Vertex v : rb.getMesh().Mesh::getVertices())
