@@ -1579,7 +1579,7 @@ void RigidBody2(Application app)
 
 			//collision
 
-			std::vector<glm::vec3> collisionPoints;
+			std::vector<glm::vec3> collisionPoints = {};
 			//scale[1][1] is y scale
 
 			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
@@ -1591,22 +1591,36 @@ void RigidBody2(Application app)
 				}
 			}
 
-			glm::vec3 colPoint;
-			if (collisionPoints.size() > 1)
+			if (collisionPoints.size() != 0)
 			{
-				glm::vec3 sumVec;
-				for (glm::vec3 p : collisionPoints)
+				//get average collision point
+				glm::vec3 colPoint;
+				if (collisionPoints.size() > 1)
 				{
-					sumVec += p;
+					glm::vec3 sumVec;
+					for (glm::vec3 p : collisionPoints)
+					{
+						sumVec += p;
+					}
+
+					glm::vec3 avgVec = sumVec / collisionPoints.size();
+
+					colPoint = avgVec;
+				}
+				else
+				{
+					colPoint = collisionPoints[0];
 				}
 
-				glm::vec3 avgVec = sumVec / collisionPoints.size();
+				//get collision normal (straight down for plane collision only)
+				glm::vec3 colNormal;
+				colNormal = glm::vec3(0, -1, 0);
+				colNormal = glm::normalize(colNormal);
 
-				colPoint = avgVec;
-			}
-			else
-			{
-				colPoint = collisionPoints[0];
+				//resolve overlap 
+				glm::vec3 colOverlap = colPoint - glm::vec3(colPoint.x, 0, colPoint.z);
+				rb.setPos(rb.getPos() + colOverlap);
+
 			}
 
 			accumulator -= fixedDeltaTime;
