@@ -1536,7 +1536,7 @@ void RigidBody2(Application app)
 	//rigid body motion values
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	rb.setAngVel(glm::vec3(0.0f, 2.0f, 0.0f));
+	rb.setAngVel(glm::vec3(2.0f, 0.0f, 0.0f));
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1580,9 +1580,10 @@ void RigidBody2(Application app)
 			//collision
 
 			std::vector<glm::vec3> collisionPoints = {};
+			std::vector<Vertex> vertices = rb.getMesh().Mesh::getVertices();
 
 			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
-			for (Vertex v : rb.getMesh().Mesh::getVertices())
+			for (Vertex v : vertices)
 			{
 				glm::mat3 m = glm::mat3(rb.getMesh().getModel());
 				glm::vec3 worldSpaceVertex = m * v.getCoord() + rb.getPos();
@@ -1620,8 +1621,9 @@ void RigidBody2(Application app)
 				colNormal = glm::normalize(colNormal);
 
 				//resolve overlap 
-				glm::vec3 colOverlap = colPoint - glm::vec3(colPoint.x, 0, colPoint.z);
+				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0, colPoint.z) - colPoint;
 				rb.setPos(rb.getPos() + colOverlap);
+				rb.Body::setVel(glm::vec3(0.0f, 0.0f, 0.0f));
 
 			}
 
