@@ -1536,7 +1536,7 @@ void RigidBody2(Application app)
 	//rigid body motion values
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	rb.setAngVel(glm::vec3(2.0f, 0.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 0.0f, 2.0f));
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1581,10 +1581,12 @@ void RigidBody2(Application app)
 
 			std::vector<glm::vec3> collisionPoints = {};
 			std::vector<Vertex> vertices = rb.getMesh().Mesh::getVertices();
-
+			glm::vec3 vertexSum;
 			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
+			//at the same time calculate centre of mass
 			for (Vertex v : vertices)
 			{
+				vertexSum += v.getCoord();
 				glm::mat3 m = glm::mat3(rb.getMesh().getModel());
 				glm::vec3 worldSpaceVertex = m * v.getCoord() + rb.getPos();
 				//glm::mat4 worldPoint = v.getCoord() * modelMat;
@@ -1593,6 +1595,8 @@ void RigidBody2(Application app)
 					collisionPoints.push_back(worldSpaceVertex);
 				}
 			}
+			//set centre of mass
+			glm::vec3 centreOfMass = vertexSum / vertices.size();
 
 			if (!collisionPoints.empty())
 			{
@@ -1623,7 +1627,28 @@ void RigidBody2(Application app)
 				//resolve overlap 
 				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0, colPoint.z) - colPoint;
 				rb.setPos(rb.getPos() + colOverlap);
-				rb.Body::setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+
+				
+
+				//generate the impulse
+				//e = coefficient of restitution
+				float e = rb.getRestitution();
+				//vr = v for plane collision only
+				glm::vec3 vr = rb.getVel();
+				//get distance r from CoM to point: c to r = r-c
+				glm::vec3 r = colPoint - centreOfMass;
+				glm::vec3 numerator = -(1 + e) * vr - colNormal;
+				//break it down a bit to rduce nested glm functions and brackets
+				glm::vec3 rCrossN = glm::cross(r, colNormal);
+				float denominator = glm::pow(rb.getMass(), -1.0f) + glm::dot(colNormal, (rb.getinvInertia() * glm::cross(rCrossN, rb.getVel())));
+
+				glm::vec3 impulse = numerator / denominator;
+
+				//set new velocity and rotation using impulse
+				rb.Body::setVel(rb.getVel() - glm::dot(impulse/rb.getMass(), colNormal));
+
+				//set new angular velocity using impulse
+				rb.setAngVel(rb.getAngVel() - impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
 
 			}
 
