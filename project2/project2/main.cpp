@@ -1534,6 +1534,7 @@ void RigidBody2(Application app)
 	rb.setMass(1.0f);
 
 	//rigid body motion values
+	rb.setRestitution(1.0f);
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
 	rb.setAngVel(glm::vec3(0.0f, 0.0f, 2.0f));
