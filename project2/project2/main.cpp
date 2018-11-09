@@ -1534,10 +1534,10 @@ void RigidBody2(Application app)
 	rb.setMass(1.0f);
 
 	//rigid body motion values
-	rb.setRestitution(0.2f);
+	rb.setRestitution(1.0f);
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
-	rb.setVel(glm::vec3(0.0f, 1.0f, 0.0f));
-	rb.setAngVel(glm::vec3(0.0f, 0.0f, 1.0f));
+	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb.setAngVel(glm::vec3(1.0f, 1.0f, 1.0f));
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1623,35 +1623,35 @@ void RigidBody2(Application app)
 
 				//get collision normal (straight down for plane collision only)
 				glm::vec3 colNormal;
-				colNormal = glm::vec3(0, -1, 0);
+				colNormal = glm::vec3(0.0f, 1.0f, 0.0f);
 				colNormal = glm::normalize(colNormal);
 
 				//resolve overlap 
 				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0, colPoint.z) - colPoint;
-				rb.setPos(rb.getPos() + colOverlap);
-
-				
+							
 
 				//generate the impulse
 				//e = coefficient of restitution
 				float e = rb.getRestitution();
 				//get distance r from CoM to point: c to r = r-c
-				glm::vec3 r = colPoint - centreOfMass;
+				glm::vec3 r = colPoint - rb.getPos();
 				//vr = v for plane collision only
 				//glm::vec3 vr = rb.getVel();
 				glm::vec3 vr = rb.getVel() + glm::cross(rb.getAngVel(), r);
 				float numerator = -(1.0f + e) * glm::dot(vr,  colNormal);
 				//break it down a bit to rduce nested glm functions and brackets
 				glm::vec3 rCrossN = glm::cross(r, colNormal);
-				float denominator = glm::pow(rb.getMass(), -1.0f) + glm::dot(colNormal, ( glm::cross(rb.getinvInertia() * rCrossN, rb.getVel())));
+				float denominator = glm::pow(rb.getMass(), -1.0f) + glm::dot(colNormal, ( glm::cross(rb.getinvInertia() * rCrossN, r)));
 
 				float impulse = numerator / denominator;
 
 				//set new velocity and rotation using impulse
-				rb.setVel(rb.getVel() + (impulse/rb.getMass()) * colNormal * 0.5f);
+				rb.setVel(rb.getVel() + (impulse/rb.getMass()) * colNormal);
 
 				//set new angular velocity using impulse
-				rb.setAngVel(rb.getAngVel() + impulse * rb.getinvInertia() * (glm::cross(r, colNormal))* 0.5f);
+				rb.setAngVel(rb.getAngVel() + impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
+
+				rb.setPos(rb.getPos() + colOverlap);
 
 			}
 
