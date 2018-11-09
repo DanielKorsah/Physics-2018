@@ -1537,7 +1537,7 @@ void RigidBody2(Application app)
 	rb.setRestitution(1.0f);
 	rb.translate(glm::vec3(0.0f, 4.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	rb.setAngVel(glm::vec3(0.0f, 0.0f, 2.0f));
+	rb.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1646,10 +1646,10 @@ void RigidBody2(Application app)
 				glm::vec3 impulse = numerator / denominator;
 
 				//set new velocity and rotation using impulse
-				rb.Body::setVel(rb.getVel() - glm::dot(impulse/rb.getMass(), colNormal));
+				rb.Body::setVel(rb.getVel() - glm::dot(impulse/rb.getMass(), colNormal) * 0.5f);
 
 				//set new angular velocity using impulse
-				rb.setAngVel(rb.getAngVel() - impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
+				rb.setAngVel(rb.getAngVel() - impulse * rb.getinvInertia() * (glm::cross(r, colNormal)) * 0.5f);
 
 			}
 
