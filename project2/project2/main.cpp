@@ -64,9 +64,8 @@ Cone cone;
 //toggle variable for moving cone
 bool toggle = false;
 
-
-
-
+//mode for collision demo
+int mode = 1;
 
 bool inCone(Particle p, float* cm)
 {
@@ -1388,7 +1387,6 @@ void Flag(Application app)
 	app.terminate();
 }
 
-
 void RigidBodyImpulse(Application app)
 {
 	deltaTime = 0.0f;
@@ -1503,8 +1501,7 @@ void RigidBodyImpulse(Application app)
 				glm::vec3 impulsePoint = glm::vec3(rb.getPos().x + 1, rb.getPos().y - 1.5f, rb.getPos().z);
 
 				//vector from CoM to impulse point
-				glm::vec3 r = impulsePoint - rb.getPos();;
-				
+				glm::vec3 r = impulsePoint - rb.getPos();
 
 				float impulse = 4.0f;
 
@@ -1545,6 +1542,7 @@ void RigidBodyImpulse(Application app)
 
 	app.terminate();
 }
+
 void RigidBodyCollision(Application app)
 {
 	deltaTime = 0.0f;
@@ -1576,11 +1574,25 @@ void RigidBodyCollision(Application app)
 	rb.scale(glm::vec3(1.0f, 3.0f, 1.0f));
 	rb.setMass(2.0f);
 
-	//rigid body motion values
+	//rigid body motion values for demo1
+	if (mode == 1)
+	{
 	rb.setRestitution(1.0f);
 	rb.translate(glm::vec3(0.0f, 5.0f, 0.0f));
 	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-	rb.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 0.0f, 0.5f));
+	}
+
+
+	//rigid body motion values for demo2
+	if (mode == 2)
+	{
+		rb.setRestitution(0.7f);
+		rb.translate(glm::vec3(0.0f, 5.0f, 0.0f));
+		rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+		rb.setAngVel(glm::vec3(0.1f, 0.1f, 0.1f));
+	}
+
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1715,6 +1727,208 @@ void RigidBodyCollision(Application app)
 		// Manage interaction
 		app.doMovement(deltaTime);
 
+		if (app.keys[GLFW_KEY_LEFT_SHIFT] && app.keys[GLFW_KEY_1])
+		{
+			mode = 1;
+			app.clear();
+			RigidBodyCollision(app);
+		}
+
+		if (app.keys[GLFW_KEY_LEFT_SHIFT] && app.keys[GLFW_KEY_2])
+		{
+			mode = 2;
+			app.clear();
+			RigidBodyCollision(app);
+		}
+
+		//switch mode
+		CheckMode(app);
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+		app.draw(rb.getMesh());
+
+		app.display();
+	}
+
+	app.terminate();
+}
+
+void RigidBodyFriction(Application app)
+{
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x5
+	plane.scale(glm::vec3(5.0f, 5.0f, 5.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 1.0f;
+	const double fixedDeltaTime = 0.01f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+	//set up cubic rigidbody
+	RigidBody rb = RigidBody();
+	Mesh m = Mesh::Mesh(Mesh::CUBE);
+	rb.setMesh(m);
+	Shader rbShader = Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag");
+	rb.getMesh().setShader(rbShader);
+	rb.scale(glm::vec3(1.0f, 3.0f, 1.0f));
+	rb.setMass(2.0f);
+
+	//rigid body motion values
+	rb.setRestitution(1.0f);
+	rb.translate(glm::vec3(0.0f, 5.0f, 0.0f));
+	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+
+	rb.addForce(g);
+
+	// Game loop
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		frameTime *= 1.0f;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+
+		while (accumulator >= fixedDeltaTime)
+		{
+
+			rb.setAcc(rb.applyForces(rb.Body::getPos(), rb.Body::getVel(), physicsTime, fixedDeltaTime));
+
+			//Semi - Implicit Euler integration
+			rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
+			rb.translate(rb.Body::getVel() * fixedDeltaTime);
+
+			//rotation integration
+
+			//set w
+			rb.setAngVel(rb.getAngVel() + fixedDeltaTime * rb.getAngAcc());
+			//create skew symetric matrix for w
+			glm::mat3 angVelSkew = glm::matrixCross3(rb.getAngVel());
+			//create 3x3 rotation matrix from rb rotation matrix
+			glm::mat3 R = glm::mat3(rb.getRotate());
+			//update rotation matrix
+			R += fixedDeltaTime * angVelSkew * R;
+			R = glm::orthonormalize(R);
+			rb.setRotate(glm::mat4(R));
+
+			//collision
+
+			std::vector<glm::vec3> collisionPoints = {};
+			std::vector<Vertex> vertices = rb.getMesh().Mesh::getVertices();
+			glm::vec3 vertexSum = glm::vec3(0, 0, 0);
+			//for each vertex of the rigidbody, if it's below the plane add it to a vector of collision points
+			//at the same time calculate centre of mass
+			for (Vertex v : vertices)
+			{
+
+				glm::mat3 m = glm::mat3(rb.getMesh().getModel());
+				glm::vec3 worldSpaceVertex = m * v.getCoord() + rb.getPos();
+				//glm::mat4 worldPoint = v.getCoord() * modelMat;
+				if (worldSpaceVertex.y < plane.getPos().y)
+				{
+					collisionPoints.push_back(worldSpaceVertex);
+				}
+				vertexSum += worldSpaceVertex;
+			}
+			//set centre of mass
+			glm::vec3 centreOfMass = vertexSum / vertices.size();
+
+			if (!collisionPoints.empty())
+			{
+				//get average collision point
+				glm::vec3 colPoint;
+				if (collisionPoints.size() > 1)
+				{
+					glm::vec3 sumVec;
+					for (glm::vec3 p : collisionPoints)
+					{
+						sumVec += p;
+					}
+
+					glm::vec3 avgVec = sumVec / collisionPoints.size();
+
+					colPoint = avgVec;
+				}
+				else
+				{
+					colPoint = collisionPoints[0];
+				}
+
+				//get collision normal (straight down for plane collision only)
+				glm::vec3 colNormal;
+				colNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+				colNormal = glm::normalize(colNormal);
+
+				//resolve overlap 
+				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0.01f, colPoint.z) - colPoint;
+				rb.setPos(rb.getPos() + colOverlap);
+
+				//generate the impulse
+				//e = coefficient of restitution
+				float e = rb.getRestitution();
+				//get distance r from CoM to point: c to r = r-c
+				glm::vec3 r = colPoint - rb.getPos();
+				//vr = v for plane collision only
+				//glm::vec3 vr = rb.getVel();
+				glm::vec3 vr = rb.getVel() + glm::cross(rb.getAngVel(), r);
+				float numerator = -(1.0f + e) * glm::dot(vr, colNormal);
+				//break it down a bit to rduce nested glm functions and brackets
+				glm::vec3 rCrossN = glm::cross(r, colNormal);
+				float denominator = glm::pow(rb.getMass(), -1.0f) + glm::dot(colNormal, (glm::cross(rb.getinvInertia() * rCrossN, r)));
+
+				float impulse = numerator / denominator;
+
+				//set new velocity and rotation using impulse
+				rb.setVel(rb.getVel() + (impulse / rb.getMass()) * colNormal);
+
+				//set new angular velocity using impulse
+				rb.setAngVel(rb.getAngVel() + impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
+
+				std::cout << "\nCollision Points:" << std::endl;
+				for (glm::vec3 p : collisionPoints)
+				{
+					std::cout << p.x << "," << p.y << "," << p.z << std::endl;
+				}
+				std::cout << "Average: " << colPoint.x << "," << colPoint.y << "," << colPoint.z << std::endl;
+
+				collisionPoints.clear();
+
+			}
+
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+		}
+
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
 		//switch mode
 		CheckMode(app);
 
@@ -1776,7 +1990,19 @@ void CheckMode(Application app)
 	if (app.keys[GLFW_KEY_7])
 	{
 		app.clear();
+		RigidBodyImpulse(app);
+	}
+
+	if (app.keys[GLFW_KEY_8])
+	{
+		app.clear();
 		RigidBodyCollision(app);
+	}
+
+	if (app.keys[GLFW_KEY_9])
+	{
+		app.clear();
+		RigidBodyFriction(app);
 	}
 
 }
