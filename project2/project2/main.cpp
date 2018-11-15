@@ -1943,7 +1943,10 @@ void RigidBodyFriction(Application app)
 				std::cout << "friction impulse magnituge before: " << impulseFrictionMag << std::endl;
 				if (abs(impulseFrictionMag)> abs(maxFriction) && maxFriction != 0)
 				{
+					maxFriction = 
+
 					impulseFrictionMag = -maxFriction;
+
 				}
 				std::cout << "friction impulse magnituge after: " << impulseFrictionMag << std::endl;
 
