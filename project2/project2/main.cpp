@@ -1708,9 +1708,9 @@ void RigidBodyCollision(Application app)
 				std::cout << "\nCollision Points:" << std::endl;
 				for (glm::vec3 p : collisionPoints)
 				{
-					std::cout << p.x << "," << p.y << "," << p.z << std::endl;
+					std::cout << glm::to_string(p) << std::endl;
 				}
-				std::cout << "Average: " << colPoint.x << "," << colPoint.y << "," << colPoint.z << std::endl;
+				std::cout << "Average: " << glm::to_string(colPoint) << std::endl;
 
 				collisionPoints.clear();
 
