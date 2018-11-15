@@ -1631,6 +1631,7 @@ void RigidBodyCollision(Application app)
 			R += fixedDeltaTime * angVelSkew * R;
 			R = glm::orthonormalize(R);
 			rb.setRotate(glm::mat4(R));
+			rb.setPrevRotate(glm::mat4(R));
 
 			//collision
 
@@ -1656,6 +1657,10 @@ void RigidBodyCollision(Application app)
 
 			if (!collisionPoints.empty())
 			{
+				//resolve over rotate
+				glm::mat3 pR = rb.getprevRotate();
+				rb.setRotate(glm::mat4(pR));
+
 				//get average collision point
 				glm::vec3 colPoint;
 				if (collisionPoints.size() > 1)
@@ -1681,7 +1686,7 @@ void RigidBodyCollision(Application app)
 				colNormal = glm::normalize(colNormal);
 
 				//resolve overlap 
-				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0.01f , colPoint.z) - colPoint;
+				glm::vec3 colOverlap = glm::vec3(colPoint.x, 0.0f , colPoint.z) - colPoint;
 				rb.setPos(rb.getPos() + colOverlap);
 
 				//generate the impulse
@@ -1791,10 +1796,12 @@ void RigidBodyFriction(Application app)
 	rb.setMass(2.0f);
 
 	//rigid body motion values
-	rb.setRestitution(1.0f);
+	rb.setRestitution(0.6f);
 	rb.translate(glm::vec3(0.0f, 5.0f, 0.0f));
-	rb.setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	rb.setVel(glm::vec3(3.0f, 0.0f, 0.0f));
 	rb.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+	float coeffFriction = 0.7f;
+
 	Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 
 	rb.addForce(g);
@@ -1833,8 +1840,13 @@ void RigidBodyFriction(Application app)
 			R += fixedDeltaTime * angVelSkew * R;
 			R = glm::orthonormalize(R);
 			rb.setRotate(glm::mat4(R));
+			rb.setPrevRotate(glm::mat4(R));
 
 			//collision
+
+			//resolve over rotate
+			glm::mat3 pR = rb.getprevRotate();
+			rb.setRotate(glm::mat4(pR));
 
 			std::vector<glm::vec3> collisionPoints = {};
 			std::vector<Vertex> vertices = rb.getMesh().Mesh::getVertices();
@@ -1901,18 +1913,61 @@ void RigidBodyFriction(Application app)
 
 				float impulse = numerator / denominator;
 
+
 				//set new velocity and rotation using impulse
 				rb.setVel(rb.getVel() + (impulse / rb.getMass()) * colNormal);
 
+				glm::vec3 prevAngVel = rb.getAngVel();
 				//set new angular velocity using impulse
-				rb.setAngVel(rb.getAngVel() + impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
+				rb.setAngVel(rb.getAngVel() - impulse * rb.getinvInertia() * (glm::cross(r, colNormal)));
+				std::cout << "linear impulse: " << impulse << std::endl;
+				std::cout << "vr: " << glm::to_string(vr) << std::endl;
 
-				std::cout << "\nCollision Points:" << std::endl;
-				for (glm::vec3 p : collisionPoints)
+
+				//friction calculations
+
+				//tangential velocity
+				glm::vec3 vt = vr - glm::dot(vr, colNormal) * colNormal;
+				float vtMag = glm::length(vt);
+
+
+				// Calculate tangental impulse
+				glm::vec3 impulseFriction = -coeffFriction * impulse * glm::normalize(vt);
+				float impulseFrictionMag = glm::length(impulseFriction);
+				//prevent friction from making it go backwards
+				//float maxFriction = vtMag * rb.getMass() + glm::length(rb.getAngVel()) / glm::length(rb.getinvInertia() * glm::cross(r, glm::normalize(impulseFriction)));
+				float maxFriction = glm::length(rb.getAngVel()/(rb.getinvInertia()*(glm::cross(r, colNormal)) + prevAngVel)) ;
+				//float maxFriction = glm::length(-coeffFriction * -glm::length(rb.getAngVel()) * glm::normalize(vt));
+				std::cout << "max vt: " << glm::to_string(vt) << std::endl;
+				std::cout << "max jf: " << maxFriction << std::endl;
+				std::cout << "friction impulse magnituge before: " << impulseFrictionMag << std::endl;
+				if (abs(impulseFrictionMag)> abs(maxFriction) && maxFriction != 0)
 				{
-					std::cout << p.x << "," << p.y << "," << p.z << std::endl;
+					impulseFrictionMag = -maxFriction;
 				}
-				std::cout << "Average: " << colPoint.x << "," << colPoint.y << "," << colPoint.z << std::endl;
+				std::cout << "friction impulse magnituge after: " << impulseFrictionMag << std::endl;
+
+				//apply friction
+				if (impulseFrictionMag > 0.0f)
+				{
+					rb.setAngVel(rb.getAngVel() + impulseFrictionMag * rb.getinvInertia() * glm::cross(r, glm::normalize(impulseFriction)));
+					rb.setVel(rb.getVel() + impulseFrictionMag / rb.getMass() * glm::normalize(impulseFriction));
+				}
+				else 
+				{
+					//do nothing if tangential velocity is zero
+				}
+
+				
+					
+
+				
+				
+				std::cout << "friction impulse: " << glm::to_string(impulseFriction) << "\n" << std::endl;
+				/*std::cout << "t: " << glm::to_string(frictionDirection) << std::endl;
+				std::cout << "jf: " << frictionMagnitude << std::endl;
+				std::cout << "fe: " << glm::to_string(fe) << std::endl;*/
+
 
 				collisionPoints.clear();
 
@@ -2026,7 +2081,7 @@ int main()
 	//Rope(app);
 
 	//rigidbody shortcut
-	RigidBodyImpulse(app);
+	RigidBodyFriction(app);
 
 	
 	return EXIT_SUCCESS;
