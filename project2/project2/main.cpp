@@ -28,6 +28,10 @@
 #include "Body.h"
 #include "RigidBody.h"
 
+//randomiser dependencies
+#include <cstdlib>
+#include <ctime>
+
 Shader redShader;
 Shader blueShader;
 Shader transparent;
@@ -2005,6 +2009,168 @@ void RigidBodyFriction(Application app)
 	app.terminate();
 }
 
+void Final1(Application app)
+{
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+
+	float directionRange = 20.0f;
+	float tableSize = 30;
+
+	// create ground plane
+	Mesh plane = Mesh::Mesh(Mesh::QUAD);
+	// scale it up x30
+	plane.scale(glm::vec3(30.0f, 0.0f, 30.0f));
+	plane.setShader(Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag"));
+
+	Cube cushion;
+	cushion.origin = glm::vec3(-(tableSize/2), 0.0f, -(tableSize / 2));
+	cushion.bound = glm::vec3(tableSize / 2, 3.0f, tableSize / 2);
+
+	glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+
+	// time
+	GLfloat firstFrame = (GLfloat)glfwGetTime();
+
+	//fixed timestep
+	double physicsTime = 1.0f;
+	const double fixedDeltaTime = 0.01f;
+	double currentTime = (GLfloat)glfwGetTime();
+	double accumulator = 0.0f;
+
+	// create particle
+	std::vector<RigidBody> balls;
+	int ballNum = 5;
+	Mesh sphere = Mesh::Mesh("resources/models/sphere.obj");
+
+	for (int i = 0; i < ballNum; i++)
+	{
+
+		//get random number between negative directionRange and positive directionRange for x and z initial velocities
+		srand(static_cast <unsigned> (time(0) + i));
+		float startX = -(tableSize / 2) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / ((tableSize / 2) - (-(tableSize / 2)))));
+		srand(static_cast <unsigned> (time(0) + i * 2));
+		float startZ = -(tableSize / 2) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / ((tableSize / 2) - (-(tableSize / 2)))));
+		
+		//get random number between negative directionRange and positive directionRange for x and z initial velocities
+		srand(static_cast <unsigned> (time(0) + i));
+		float randX = -directionRange + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (directionRange - (-directionRange))));
+		srand(static_cast <unsigned> (time(0) + i * 2));
+		float randZ = -directionRange + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (directionRange - (-directionRange))));
+
+		//ball of radius 1
+		RigidBody ball = RigidBody();
+		ball.setMesh(sphere);
+
+		//rigid body motion values
+		ball.setRestitution(0.6f);
+		ball.setVel(glm::vec3(3.0f, 0.0f, 0.0f));
+		ball.setAngVel(glm::vec3(0.0f, 0.0f, 0.0f));
+		
+		std::cout << "start: " << startX << "," << startZ << std::endl;
+		std::cout << "dir: " << randX << "," << randZ << std::endl;
+
+		balls.push_back(ball);
+		balls[i].scale(glm::vec3(1.0f, 1.0f, 1.0f));
+		//particles[i].rotate((GLfloat) M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
+		balls[i].getMesh().setShader(Shader("resources/shaders/solid.vert", "resources/shaders/solid_blue.frag"));
+
+
+		balls[i].setPos(glm::vec3(startX, 1.0f, startZ));
+		balls[i].setVel(glm::vec3(randX, .0f, randZ));
+
+		//set start acceleration to gravity
+		//balls[i].setAcc(gravity);
+		balls[i].setMass(1.0f);
+	}
+
+	float coeffFriction = 0.7f;
+
+	//set up cubic rigidbody
+	RigidBody rb = RigidBody();
+	Mesh m = Mesh::Mesh(Mesh::CUBE);
+	rb.setMesh(m);
+	Shader rbShader = Shader("resources/shaders/physics.vert", "resources/shaders/physics.frag");
+	rb.getMesh().setShader(rbShader);
+	rb.scale(glm::vec3(1.0f, 3.0f, 1.0f));
+	rb.setMass(2.0f);
+
+	
+
+	//Gravity* g = new Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
+
+	// Game loop
+	while (!glfwWindowShouldClose(app.getWindow()))
+	{
+
+		//fixed timstep
+		double newTime = (GLfloat)glfwGetTime();
+		double frameTime = newTime - currentTime;
+		frameTime *= 1.0f;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+
+		while (accumulator >= fixedDeltaTime)
+		{
+			for (RigidBody rb : balls)
+			{
+				//rb.setAcc(rb.applyForces(rb.getPos(), rb.getVel(), physicsTime, fixedDeltaTime));
+
+				//Semi - Implicit Euler integration
+				rb.Body::getVel() += rb.Body::getAcc() * fixedDeltaTime;
+				rb.translate(rb.Body::getVel() * fixedDeltaTime);
+				std::cout << "vel " << rb.getVel().x << "," << rb.getVel().z << std::endl;
+
+
+				//rotation integration
+
+				//set w
+				rb.setAngVel(rb.getAngVel() + fixedDeltaTime * rb.getAngAcc());
+				//create skew symetric matrix for w
+				glm::mat3 angVelSkew = glm::matrixCross3(rb.getAngVel());
+				//create 3x3 rotation matrix from rb rotation matrix
+				glm::mat3 R = glm::mat3(rb.getRotate());
+				//update rotation matrix
+				R += fixedDeltaTime * angVelSkew * R;
+				R = glm::orthonormalize(R);
+				rb.setRotate(glm::mat4(R));
+				rb.setPrevRotate(glm::mat4(R));
+			}
+			
+			accumulator -= fixedDeltaTime;
+			physicsTime += fixedDeltaTime;
+		}
+
+
+		/*
+		**	INTERACTION
+		*/
+		// Manage interaction
+		app.doMovement(deltaTime);
+
+		//switch mode
+		CheckMode(app);
+
+		/*
+		**	RENDER
+		*/
+		// clear buffer
+		app.clear();
+		// draw groud plane
+		app.draw(plane);
+		for (RigidBody rb : balls)
+		{
+			app.draw(rb.getMesh());
+		}
+
+		app.display();
+	}
+
+	app.terminate();
+}
+
 //demo switching method
 void CheckMode(Application app)
 {
@@ -2084,7 +2250,10 @@ int main()
 	//Rope(app);
 
 	//rigidbody shortcut
-	RigidBodyFriction(app);
+	//RigidBodyFriction(app);
+
+	//final shortcut
+	Final1(app);
 
 	
 	return EXIT_SUCCESS;
