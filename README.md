@@ -1,2 +1,2 @@
 # Physics-2018
-Physics practicals
+Physics-based animation practicals
